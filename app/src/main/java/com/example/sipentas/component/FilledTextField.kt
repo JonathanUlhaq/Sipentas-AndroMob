@@ -1,0 +1,69 @@
+package com.example.sipentas.component
+
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun FilledTextField(
+    textString: MutableState<String>,
+    label: String,
+    minHeight: Int = 1,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    singleLine: Boolean = true,
+    imeAction: ImeAction = ImeAction.Done,
+    trailingIcon: @Composable () -> Unit = {}
+) {
+    TextField(
+        value = textString.value,
+        onValueChange = { string ->
+            textString.value = string
+        },
+        modifier = Modifier
+            .fillMaxWidth()
+         ,
+        colors = TextFieldDefaults.textFieldColors(
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            containerColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedLabelColor = MaterialTheme.colorScheme.surface,
+            textColor = Color(0xFF434343),
+            focusedTrailingIconColor = MaterialTheme.colorScheme.surface,
+            unfocusedTrailingIconColor = MaterialTheme.colorScheme.surface,
+            cursorColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(12.dp),
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        trailingIcon = {
+            trailingIcon.invoke()
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        visualTransformation = visualTransformation,
+        singleLine = singleLine
+    )
+}
