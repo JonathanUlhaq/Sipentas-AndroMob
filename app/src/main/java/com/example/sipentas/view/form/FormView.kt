@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,10 +28,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -43,6 +47,7 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.utils.CameraView
+import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
@@ -58,6 +63,24 @@ fun FormView(
     val nama = remember {
         mutableStateOf("")
     }
+    val kategoriPpks = remember {
+        mutableStateOf(false)
+    }
+    val ragam = remember {
+        mutableStateOf(false)
+    }
+    val agama = remember {
+        mutableStateOf(false)
+    }
+    val kelamin = remember {
+        mutableStateOf(false)
+    }
+    val provinsi = remember {
+        mutableStateOf(false)
+    }
+    val kabupaten = remember {
+        mutableStateOf(false)
+    }
     val showPermission = remember {
         mutableStateOf(false)
     }
@@ -70,9 +93,11 @@ fun FormView(
 
     val context = LocalContext.current
 
-    if(showPermission.value) {
-        RequestCameraPermission(context = context ,
-            openCamera = openCamera )
+    if (showPermission.value) {
+        RequestCameraPermission(
+            context = context,
+            openCamera = openCamera
+        )
     }
     val locationPermission = remember {
         mutableStateOf(false)
@@ -89,26 +114,26 @@ fun FormView(
         location.LocationPermission(lat = lat, long = long)
     }
 
-    val output:File = getOutputDirectory(context)
+    val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
-
+    val scrollState = rememberScrollState()
 
 
     if (openCamera.value) {
         CameraView(
             outputDirectory = output,
-            executor = cameraExecutor ,
+            executor = cameraExecutor,
             closeCamera = {
                 showPermission.value = false
                 openCamera.value = false
                 cameraExecutor.shutdown()
-                          },
-            onImageCapture = {uri ->
+            },
+            onImageCapture = { uri ->
                 capturedImagebyUri.value = uri
                 showPermission.value = false
                 openCamera.value = false
                 cameraExecutor.shutdown()
-            } ,
+            },
             onError = {
 
             }
@@ -124,6 +149,7 @@ fun FormView(
                 Column(
                     Modifier
                         .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                        .verticalScroll(scrollState)
                 ) {
                     Row(
                         Modifier
@@ -131,7 +157,9 @@ fun FormView(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { }) {
+                        IconButton(onClick = {
+                            navController.popBackStack()
+                        }) {
                             Icon(
                                 painter = painterResource(id = R.drawable.back_icon),
                                 contentDescription = null,
@@ -168,11 +196,13 @@ fun FormView(
 
                         ) {
                             if (capturedImagebyUri.value.path?.isNotEmpty() == true) {
-                                Image(painter = rememberImagePainter(capturedImagebyUri.value),
+                                Image(
+                                    painter = rememberImagePainter(capturedImagebyUri.value),
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
-                                        .fillMaxSize())
+                                        .fillMaxSize()
+                                )
                             } else {
                                 Column(
                                     Modifier
@@ -199,6 +229,10 @@ fun FormView(
                     Spacer(modifier = Modifier.height(16.dp))
                     Divider()
                     Spacer(modifier = Modifier.height(16.dp))
+                    DropdownField(kategoriPpks, modifier = Modifier.fillMaxWidth(),"Kategori PPKS")
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(ragam, modifier = Modifier.fillMaxWidth(),"Pilih Ragam")
+                    Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
                         textString = nama,
                         label = "nama penerima manfaat",
@@ -206,6 +240,17 @@ fun FormView(
                         imeAction = ImeAction.Default,
                         singleLine = true
                     )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(Modifier
+                     .fillMaxWidth()) {
+                     DropdownField(kelamin, modifier = Modifier.fillMaxWidth(0.5f),"Jenis Kelamin")
+                     Spacer(modifier = Modifier.width(4.dp))
+                     DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama")
+                 }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi")
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten")
                     Spacer(modifier = Modifier.height(20.dp))
                     ButtonPrimary(text = {
                         Row(
@@ -236,4 +281,45 @@ fun FormView(
     }
 
 
+}
+
+@Composable
+private fun DropdownField(kategoriPpks: MutableState<Boolean>,modifier:Modifier = Modifier,label:String) {
+    Box {
+        Surface(
+            color = Color(0xFFE8E8E8),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .clickable {
+                    kategoriPpks.value = true
+                }
+        ) {
+            Row(
+                modifier
+                    .padding(
+                        start = 10.dp,
+                        end = 10.dp,
+                        top = 14.dp,
+                        bottom = 14.dp
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 12.sp,
+                    color = Color(0xFF8F8F8F)
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.dropdown),
+                    contentDescription = null,
+                    tint = Color(0xFF585757)
+                )
+            }
+        }
+
+        DropDownDummy(expand = kategoriPpks)
+    }
 }

@@ -10,7 +10,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,8 +23,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.content.ContextCompat
+import androidx.navigation.compose.rememberNavController
+import com.example.sipentas.navigation.BottomNav
 import com.example.sipentas.navigation.NavigationAdapter
 import com.example.sipentas.ui.theme.SipentasTheme
 import com.example.sipentas.view.form.FormView
@@ -32,6 +38,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+        @OptIn(ExperimentalMaterial3Api::class)
         override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -41,7 +48,26 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NavigationAdapter()
+                    val navController = rememberNavController()
+                    val showBottomBar = remember {
+                        mutableStateOf(false)
+                    }
+
+                    Scaffold (
+                        bottomBar = {
+                            if (showBottomBar.value) {
+                                BottomNav(navController = navController)
+                            }
+                        }
+                            ) {
+                        Surface(
+                            Modifier
+                                .padding(it)
+                                .fillMaxSize(),
+                            contentColor = Color.Transparent) {
+                            NavigationAdapter(navController,showBottomBar)
+                        }
+                    }
                 }
             }
         }

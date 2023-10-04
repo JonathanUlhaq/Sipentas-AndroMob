@@ -26,6 +26,9 @@ fun FilledTextField(
     textString: MutableState<String>,
     label: String,
     minHeight: Int = 1,
+    textColor:Color = Color(0xFF434343),
+    backgroundColor:Color = MaterialTheme.colorScheme.onSurface,
+    labelColor:Color = MaterialTheme.colorScheme.surface,
     keyboardType: KeyboardType = KeyboardType.Text,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     singleLine: Boolean = true,
@@ -45,12 +48,12 @@ fun FilledTextField(
             errorIndicatorColor = Color.Transparent,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
-            containerColor = MaterialTheme.colorScheme.onSurface,
-            unfocusedLabelColor = MaterialTheme.colorScheme.surface,
-            textColor = Color(0xFF434343),
-            focusedTrailingIconColor = MaterialTheme.colorScheme.surface,
-            unfocusedTrailingIconColor = MaterialTheme.colorScheme.surface,
-            cursorColor = MaterialTheme.colorScheme.surface
+            containerColor =backgroundColor ,
+            unfocusedLabelColor = labelColor,
+            textColor = textColor,
+            focusedTrailingIconColor = labelColor,
+            unfocusedTrailingIconColor = labelColor,
+            cursorColor = labelColor
         ),
         shape = RoundedCornerShape(12.dp),
         label = {

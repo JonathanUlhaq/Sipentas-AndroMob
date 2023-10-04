@@ -1,6 +1,8 @@
 package com.example.sipentas.di
 
+import com.example.sipentas.network.AuthInterceptor
 import com.example.sipentas.network.SipentasAPI
+import com.example.sipentas.utils.ConstValue
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,8 +20,9 @@ class Module {
 
     @Provides
     @Singleton
-    fun clientProvider():OkHttpClient =
+    fun clientProvider(authInterceptor: AuthInterceptor):OkHttpClient =
         OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
             .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
             .build()
 
@@ -27,7 +30,7 @@ class Module {
     @Singleton
     fun retrofitProvider(client: OkHttpClient):SipentasAPI =
         Retrofit.Builder()
-            .baseUrl("")
+            .baseUrl(ConstValue.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()

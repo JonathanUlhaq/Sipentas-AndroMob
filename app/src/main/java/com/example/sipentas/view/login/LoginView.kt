@@ -53,12 +53,14 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.navigation.AppRoute
+import com.example.sipentas.navigation.BotNavRoute
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginView(
-    navController: NavController
+    navController: NavController,
+    loginViewModel: LoginViewModel
 ) {
 
     val username = remember {
@@ -182,7 +184,8 @@ fun LoginView(
                                 fontSize = 14.sp
                             )
                         }) {
-                            navController.navigate(AppRoute.Form.route)
+                            navController.navigate(BotNavRoute.PenerimaManfaat.route)
+//                            loginViewModel.login(username.value,password.value)
                         }
 
                     }
