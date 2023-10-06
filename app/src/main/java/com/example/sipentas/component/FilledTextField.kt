@@ -33,6 +33,7 @@ fun FilledTextField(
     visualTransformation: VisualTransformation = VisualTransformation.None,
     singleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
+    enabled:Boolean = true,
     trailingIcon: @Composable () -> Unit = {}
 ) {
     TextField(
@@ -53,7 +54,10 @@ fun FilledTextField(
             textColor = textColor,
             focusedTrailingIconColor = labelColor,
             unfocusedTrailingIconColor = labelColor,
-            cursorColor = labelColor
+            cursorColor = labelColor,
+            disabledTextColor = textColor,
+            disabledLabelColor = labelColor
+
         ),
         shape = RoundedCornerShape(12.dp),
         label = {
@@ -67,6 +71,7 @@ fun FilledTextField(
         },
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
         visualTransformation = visualTransformation,
-        singleLine = singleLine
+        singleLine = singleLine,
+        enabled = enabled
     )
 }

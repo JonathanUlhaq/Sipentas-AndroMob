@@ -2,6 +2,7 @@ package com.example.sipentas.view.list_pm
 
 import android.view.RoundedCorner
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,6 +33,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -92,9 +94,21 @@ fun ListPmView(
                                 .padding(16.dp),
                             content = {
                                 items(uiState) { item ->
+
                                     Surface(
                                         color = Color(0xFFF8F8F8),
-                                        shape = RoundedCornerShape(6.dp)
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .clickable {
+                                                navController.navigate(AppRoute.DetailPm.route
+                                                        +"/${item.nama_ragam}"
+                                                        +"/${item.name}"
+                                                        +"/${item.gender}"
+                                                        +"/${item.agama}"
+                                                        +"/${item.nama_provinsi}"
+                                                        +"/${item.nama_kabupaten}")
+                                            }
                                     ) {
                                         Row(
                                             Modifier

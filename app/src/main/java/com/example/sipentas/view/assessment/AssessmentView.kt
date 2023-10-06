@@ -2,6 +2,7 @@ package com.example.sipentas.view.assessment
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,7 @@ import androidx.navigation.NavController
 import com.example.sipentas.R
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
+import com.example.sipentas.navigation.AppRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +83,13 @@ fun AssessmentView(navController: NavController) {
                             index,item ->
                             Surface(
                                 color = Color(0xFFF8F8F8),
-                                shape = RoundedCornerShape(6.dp)
+                                shape = RoundedCornerShape(6.dp),
+                                modifier = Modifier
+                                    .clickable {
+                                        if (status[index] == "Belum Ditangani") {
+                                            navController.navigate(AppRoute.FormAssessment.route)
+                                        }
+                                    }
                             ) {
                                 Row(
                                     Modifier

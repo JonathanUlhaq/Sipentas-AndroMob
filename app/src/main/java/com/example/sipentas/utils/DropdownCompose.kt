@@ -9,19 +9,28 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun DropDownDummy(expand:MutableState<Boolean>) {
-    val context  = LocalContext.current
+fun DropDownDummy(
+    expand: MutableState<Boolean>,
+    getString: (String) -> Unit
+) {
+    val context = LocalContext.current
     DropdownMenu(
         expanded = expand.value,
         onDismissRequest = { expand.value = false }
     ) {
         DropdownMenuItem(
             text = { Text("Dummy") },
-            onClick = { Toast.makeText(context, "Load", Toast.LENGTH_SHORT).show() }
+            onClick = {
+                getString.invoke("Dummy")
+                expand.value = false
+            }
         )
         DropdownMenuItem(
-            text = { Text("Dummy") },
-            onClick = { Toast.makeText(context, "Save", Toast.LENGTH_SHORT).show() }
+            text = { Text("Daummy") },
+            onClick = {
+                getString.invoke("Daummy")
+                expand.value = false
+            }
         )
     }
 }

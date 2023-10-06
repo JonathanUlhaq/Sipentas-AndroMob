@@ -1,7 +1,6 @@
-package com.example.sipentas.view.form
+package com.example.sipentas.view.form_pm
 
 import android.net.Uri
-import android.widget.Space
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +25,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -45,6 +46,7 @@ import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
+import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
@@ -90,7 +92,12 @@ fun FormView(
     val capturedImagebyUri = remember {
         mutableStateOf(Uri.EMPTY)
     }
-
+    val kategoriPpksString = remember {
+        mutableStateOf("")
+    }
+    val kelaminString = remember {
+        mutableStateOf("")
+    }
     val context = LocalContext.current
 
     if (showPermission.value) {
@@ -108,11 +115,24 @@ fun FormView(
     val long = remember {
         mutableStateOf("")
     }
+    val ragamString = remember {
+        mutableStateOf("")
+    }
+    val agamaString = remember {
+        mutableStateOf("")
+    }
+    val provinsiString = remember {
+        mutableStateOf("")
+    }
+    val kabupatenString = remember {
+        mutableStateOf("")
+    }
 
     val location = LocationProviders(context)
     if (locationPermission.value) {
         location.LocationPermission(lat = lat, long = long)
     }
+
 
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -139,7 +159,39 @@ fun FormView(
             }
         )
     } else {
-        Scaffold {
+        Scaffold (
+            topBar = {
+                Row(
+                    Modifier
+                        .padding(top = 18.dp, start = 16.dp, end = 16.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = {
+                        navController.popBackStack()
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.back_icon),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(16.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Text(
+                        text = "Form Penerima Manfaat",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        text = "Form",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color.Transparent
+                    )
+                }
+            }
+                ){
             Surface(
                 Modifier
                     .padding(it)
@@ -151,34 +203,6 @@ fun FormView(
                         .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .verticalScroll(scrollState)
                 ) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(onClick = {
-                            navController.popBackStack()
-                        }) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.back_icon),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(16.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Text(
-                            text = "Form",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = " Form",
-                            color = MaterialTheme.colorScheme.background
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(24.dp))
                     Surface(
                         Modifier
                             .fillMaxWidth()
@@ -229,9 +253,23 @@ fun FormView(
                     Spacer(modifier = Modifier.height(16.dp))
                     Divider()
                     Spacer(modifier = Modifier.height(16.dp))
-                    DropdownField(kategoriPpks, modifier = Modifier.fillMaxWidth(),"Kategori PPKS")
+
+                    DropdownField(kategoriPpks,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kategori PPKS",
+                        kategoriPpksString.value) {
+                        DropDownDummy(expand = kategoriPpks ) {
+                            kategoriPpksString.value = it
+                        }
+
+                    }
                     Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(ragam, modifier = Modifier.fillMaxWidth(),"Pilih Ragam")
+
+                    DropdownField(ragam, modifier = Modifier.fillMaxWidth(),"Pilih Ragam",ragamString.value) {
+                        DropDownDummy(expand = ragam ) {
+                            ragamString.value = it
+                        }
+                    }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
                         textString = nama,
@@ -243,14 +281,30 @@ fun FormView(
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(Modifier
                      .fillMaxWidth()) {
-                     DropdownField(kelamin, modifier = Modifier.fillMaxWidth(0.5f),"Jenis Kelamin")
+                     DropdownField(kelamin, modifier = Modifier.fillMaxWidth(0.5f),"Jenis Kelamin",kelaminString.value) {
+                         DropDownDummy(expand = kelamin ) {
+                             kelaminString.value = it
+                         }
+                     }
                      Spacer(modifier = Modifier.width(4.dp))
-                     DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama")
+                     DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama",agamaString.value){
+                         DropDownDummy(expand = agama ) {
+                             agamaString.value = it
+                         }
+                     }
                  }
                     Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi")
+                    DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi",provinsiString.value) {
+                        DropDownDummy(expand = provinsi ) {
+                            provinsiString.value = it
+                        }
+                    }
                     Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten")
+                    DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten",kabupatenString.value) {
+                        DropDownDummy(expand = kabupaten ) {
+                            kabupatenString.value = it
+                        }
+                    }
                     Spacer(modifier = Modifier.height(20.dp))
                     ButtonPrimary(text = {
                         Row(
@@ -283,43 +337,3 @@ fun FormView(
 
 }
 
-@Composable
-private fun DropdownField(kategoriPpks: MutableState<Boolean>,modifier:Modifier = Modifier,label:String) {
-    Box {
-        Surface(
-            color = Color(0xFFE8E8E8),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .clip(RoundedCornerShape(12.dp))
-                .clickable {
-                    kategoriPpks.value = true
-                }
-        ) {
-            Row(
-                modifier
-                    .padding(
-                        start = 10.dp,
-                        end = 10.dp,
-                        top = 14.dp,
-                        bottom = 14.dp
-                    ),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 12.sp,
-                    color = Color(0xFF8F8F8F)
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.dropdown),
-                    contentDescription = null,
-                    tint = Color(0xFF585757)
-                )
-            }
-        }
-
-        DropDownDummy(expand = kategoriPpks)
-    }
-}
