@@ -31,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -51,9 +52,11 @@ import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
+import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.view.form_pm.FormPmViewModel
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -61,6 +64,7 @@ import java.util.concurrent.Executors
 @Composable
 fun DetailView(
     navController: NavController,
+    vm:FormPmViewModel,
     currentRagam:String,
     currentName:String,
     currentKelamin:String,
@@ -70,9 +74,8 @@ fun DetailView(
 ) {
 
     val nama = remember {
-        mutableStateOf("")
+        mutableStateOf(currentName)
     }
-    nama.value = currentName
     val kategoriPpks = remember {
         mutableStateOf(false)
     }
@@ -102,29 +105,25 @@ fun DetailView(
     }
 
     val ragamString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentRagam)
     }
-    ragamString.value = currentRagam
 
     val agamaString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentAgama)
     }
-    agamaString.value = currentAgama
+
     val provinsiString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentProvinsi)
     }
-    provinsiString.value = currentProvinsi
     val kabupatenString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentKabupaten)
     }
-    kabupatenString.value = currentKabupaten
     val kategoriPpksString = remember {
         mutableStateOf("")
     }
     val kelaminString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentKelamin)
     }
-        kelaminString.value = currentKelamin
     val context = LocalContext.current
 
     if (showPermission.value) {
@@ -153,6 +152,17 @@ fun DetailView(
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
     val scrollState = rememberScrollState()
+
+    val dropCompose = DropdownCompose(vm)
+
+    val kategoriPpksInt = remember {
+        mutableIntStateOf(0)
+    }
+    val provinsiInt = remember {
+        mutableIntStateOf(0)
+    }
+    vm.getRagam(kategoriPpksInt.intValue)
+    vm.getKabupaten(provinsiInt.intValue)
 
 
     if (openCamera.value) {
@@ -293,8 +303,10 @@ fun DetailView(
                         kategoriPpksString.value,
                         isEnable = isEdit.value) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            DropDownDummy(expand = kategoriPpks ) {
-                                kategoriPpksString.value = it
+                            dropCompose.DropDownPpks(expand = kategoriPpks ) { string,id ->
+                                kategoriPpksString.value = string
+                                ragamString.value = ""
+                                kategoriPpksInt.intValue = id
                             }
                         }
 
@@ -304,9 +316,9 @@ fun DetailView(
 
                     DropdownField(ragam, modifier = Modifier.fillMaxWidth(),
                         "Pilih Ragam",ragamString.value,
-                        isEnable = isEdit.value) {
+                        isEnable = isEdit.value && kategoriPpksInt.intValue != 0) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            DropDownDummy(expand = ragam ) {
+                            dropCompose.DropDownRagam(expand = ragam ) {
                                 ragamString.value = it
                             }
                         }
@@ -328,7 +340,7 @@ fun DetailView(
                             "Jenis Kelamin",kelaminString.value,
                             isEnable = isEdit.value) {
                             AnimatedVisibility(visible = isEdit.value) {
-                                DropDownDummy(expand = kelamin ) {
+                                dropCompose.DropDownJenisKelamin(expand = kelamin ) {
                                     kelaminString.value = it
                                 }
                             }
@@ -339,7 +351,7 @@ fun DetailView(
                             agamaString.value,
                             isEnable = isEdit.value){
                             AnimatedVisibility(visible = isEdit.value) {
-                                DropDownDummy(expand = agama ) {
+                                dropCompose.DropDownAgama(expand = agama ) {
                                     agamaString.value = it
                                 }
                             }
@@ -351,8 +363,10 @@ fun DetailView(
                         provinsiString.value,
                         isEnable = isEdit.value) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            DropDownDummy(expand = provinsi ) {
-                                provinsiString.value = it
+                            dropCompose.DropDownProvinsi(expand = provinsi ) { string, int ->
+                                provinsiString.value = string
+                                kabupatenString.value = ""
+                                provinsiInt.intValue = int
                             }
                         }
 
@@ -360,9 +374,9 @@ fun DetailView(
                     Spacer(modifier = Modifier.height(14.dp))
                     DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten",
                         kabupatenString.value,
-                        isEnable = isEdit.value) {
+                        isEnable = isEdit.value && provinsiString.value.isNotEmpty()) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            DropDownDummy(expand = kabupaten ) {
+                            dropCompose.DropDownKabupaten(expand = kabupaten ) {
                                 kabupatenString.value = it
                             }
                         }
@@ -385,7 +399,7 @@ fun DetailView(
 
                               }
                           }) {
-                              locationPermission.value = true
+
                           }
                       }
                     }

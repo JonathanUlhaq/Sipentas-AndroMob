@@ -1,6 +1,8 @@
 package com.example.sipentas.view.list_pm
 
+import android.util.Log
 import android.view.RoundedCorner
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,6 +48,8 @@ import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
 import com.example.sipentas.models.PmModel
 import com.example.sipentas.navigation.AppRoute
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,12 +57,13 @@ fun ListPmView(
     vm: ListPmViewModel,
     navController: NavController
 ) {
-
+    vm.getPmData()
     val uiState = vm.uiState.collectAsState().value
 
     val search = remember {
         mutableStateOf("")
     }
+    val context = LocalContext.current
 
     Scaffold(
         floatingActionButton = {
@@ -94,69 +100,89 @@ fun ListPmView(
                                 .padding(16.dp),
                             content = {
                                 items(uiState) { item ->
-
-                                    Surface(
-                                        color = Color(0xFFF8F8F8),
-                                        shape = RoundedCornerShape(6.dp),
+                                    val delete = SwipeAction(
+                                        icon = painterResource(id = R.drawable.trash_icon),
+                                        background = Color(0xFFEF3131),
+                                        onSwipe = { Toast.makeText(context,"Terhapus ${item.name}",Toast.LENGTH_SHORT).show()}
+                                    )
+                                    SwipeableActionsBox(
+                                        endActions = listOf(delete),
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
-                                            .clickable {
-                                                navController.navigate(AppRoute.DetailPm.route
-                                                        +"/${item.nama_ragam}"
-                                                        +"/${item.name}"
-                                                        +"/${item.gender}"
-                                                        +"/${item.agama}"
-                                                        +"/${item.nama_provinsi}"
-                                                        +"/${item.nama_kabupaten}")
-                                            }
                                     ) {
-                                        Row(
-                                            Modifier
-                                                .padding(12.dp)
-                                                .fillMaxWidth(),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Surface(
-                                                shape = RoundedCornerShape(4.dp),
-                                                modifier = Modifier
-                                                    .size(width = 80.dp, height = 44.dp)
-                                            ) {
-                                                Image(
-                                                    painter = painterResource(id = R.drawable.gambar_person),
-                                                    contentDescription = null,
-                                                    modifier = Modifier
-                                                )
-                                            }
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Column {
-                                                Text(
-                                                    text = item.name!!,
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    fontSize = 12.sp,
-                                                    color = Color(0xFF515151)
-                                                )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Text(
-                                                    text = item.nama_ragam!!,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontSize = 10.sp,
-                                                    color = Color(0xFFC3C3C3)
-                                                )
-                                                Spacer(modifier = Modifier.height(4.dp))
-                                                Text(
-                                                    text = item.nama_provinsi!! + " / " + item.nama_provinsi,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontSize = 10.sp,
-                                                    color = Color(0xFFC3C3C3)
-                                                )
-                                            }
-                                        }
+                                        ListPmItem(navController, item)
                                     }
                                     Spacer(modifier = Modifier.height(14.dp))
                                 }
                             })
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ListPmItem(
+    navController: NavController,
+    item: PmModel
+) {
+    Surface(
+        color = Color(0xFFF8F8F8),
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable {
+                navController.navigate(
+                    AppRoute.DetailPm.route
+                            + "/${item.nama_ragam}"
+                            + "/${item.name}"
+                            + "/${item.gender}"
+                            + "/${item.agama}"
+                            + "/${item.nama_provinsi}"
+                            + "/${item.nama_kabupaten}"
+                )
+            }
+    ) {
+        Row(
+            Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(4.dp),
+                modifier = Modifier
+                    .size(width = 80.dp, height = 44.dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.gambar_person),
+                    contentDescription = null,
+                    modifier = Modifier
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = item.name!!,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 12.sp,
+                    color = Color(0xFF515151)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.nama_ragam!!,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 10.sp,
+                    color = Color(0xFFC3C3C3)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.nama_provinsi!! + " / " + item.nama_provinsi,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 10.sp,
+                    color = Color(0xFFC3C3C3)
+                )
             }
         }
     }

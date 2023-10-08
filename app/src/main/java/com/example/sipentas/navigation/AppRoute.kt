@@ -6,4 +6,5 @@ sealed class AppRoute(val route:String) {
     object ListPM:AppRoute("listpm")
     object DetailPm:AppRoute("detailpm")
     object FormAssessment:AppRoute("formassessment")
+    object DetailAtensi:AppRoute("detailatensi")
 }

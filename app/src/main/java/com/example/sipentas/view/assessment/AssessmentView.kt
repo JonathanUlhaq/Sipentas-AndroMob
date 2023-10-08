@@ -1,6 +1,8 @@
 package com.example.sipentas.view.assessment
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -55,7 +58,7 @@ fun AssessmentView(navController: NavController) {
     val status = listOf(
         "Belum Ditangani",
         "Sudah Ditangani",
-        "Sudah Ditangani"
+        "Ditutup"
     )
 
     val tanggal = listOf(
@@ -63,6 +66,7 @@ fun AssessmentView(navController: NavController) {
         "2023-09-26T02:10:43.348Z",
         "2023-09-26T02:10:43.348Z"
     )
+
 
     Scaffold {
         Surface(
@@ -72,77 +76,94 @@ fun AssessmentView(navController: NavController) {
             color = MaterialTheme.colorScheme.primary
         ) {
             Column {
-                HeaderList(search,"Assessment")
+                HeaderList(search, "Assessment")
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
                     LazyColumn(
                         modifier = Modifier
                             .padding(16.dp),
                         content = {
-                        itemsIndexed(nama) {
-                            index,item ->
-                            Surface(
-                                color = Color(0xFFF8F8F8),
-                                shape = RoundedCornerShape(6.dp),
-                                modifier = Modifier
-                                    .clickable {
-                                        if (status[index] == "Belum Ditangani") {
-                                            navController.navigate(AppRoute.FormAssessment.route)
+                            itemsIndexed(nama) { index, item ->
+
+                                val changeColor by animateColorAsState(
+                                    targetValue = if (status[index] == "Belum Ditangani") Color(
+                                        0xFFD0D34B
+                                    )
+                                    else if (status[index] == "Sudah Ditangani") Color(0xFF4BD379)
+                                    else Color(0xFFD34B4B)
+                                )
+                                val changeIcon by animateIntAsState(
+                                    targetValue = if (status[index] == "Belum Ditangani")
+                                        R.drawable.process_icon else if (status[index] == "Sudah Ditangani")
+                                        R.drawable.check_icon
+                                    else R.drawable.close_icon
+                                )
+
+
+                                Surface(
+                                    color = Color(0xFFF8F8F8),
+                                    shape = RoundedCornerShape(6.dp),
+                                    modifier = Modifier
+                                        .clickable {
+                                            if (status[index] == "Belum Ditangani") {
+                                                navController.navigate(AppRoute.FormAssessment.route)
+                                            }
+                                        }
+                                ) {
+                                    Row(
+                                        Modifier
+                                            .padding(start = 12.dp)
+                                            .fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column {
+                                            Text(
+                                                text = item,
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontSize = 12.sp,
+                                                color = Color(0xFF515151)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = status[index],
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontSize = 10.sp,
+                                                color = Color(0xFFC3C3C3)
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Text(
+                                                text = tanggal[index],
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontSize = 10.sp,
+                                                color = Color(0xFFC3C3C3)
+                                            )
+                                        }
+                                        Surface(
+                                            shape = RoundedCornerShape(4.dp),
+                                            modifier = Modifier
+                                                .size(width = 50.dp, height = 60.dp),
+                                            color = changeColor
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .wrapContentSize(Alignment.Center)
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = changeIcon),
+                                                    contentDescription = null,
+                                                    tint = MaterialTheme.colorScheme.background,
+                                                    modifier = Modifier
+                                                        .size(14.dp)
+                                                )
+                                            }
                                         }
                                     }
-                            ) {
-                                Row(
-                                    Modifier
-                                        .padding(start = 12.dp)
-                                        .fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = item,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontSize = 12.sp,
-                                            color = Color(0xFF515151)
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = status[index],
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFC3C3C3)
-                                        )
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        Text(
-                                            text = tanggal[index],
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFC3C3C3)
-                                        )
-                                    }
-                                   AnimatedVisibility(visible = status[index] == "Belum Ditangani") {
-                                       Surface(
-                                           shape = RoundedCornerShape(4.dp),
-                                           modifier = Modifier
-                                               .size(width = 50.dp, height = 60.dp),
-                                           color = Color(0xFFD0D34B)
-                                       ) {
-                                           Box(modifier = Modifier
-                                               .fillMaxSize()
-                                               .wrapContentSize(Alignment.Center)) {
-                                               Icon(painter = painterResource(id = R.drawable.process_icon),
-                                                   contentDescription = null,
-                                                   tint = MaterialTheme.colorScheme.background,
-                                                   modifier = Modifier
-                                                       .size(14.dp))
-                                           }
-                                       }
-                                   }
                                 }
+                                Spacer(modifier = Modifier.height(14.dp))
                             }
-                            Spacer(modifier = Modifier.height(14.dp))
-                        }
-                    })
+                        })
                 }
             }
         }

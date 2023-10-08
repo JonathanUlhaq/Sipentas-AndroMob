@@ -1,6 +1,11 @@
 package com.example.sipentas.view.form_pm
 
+import android.app.AlertDialog
+import android.content.Context
+import android.content.Intent
+import android.location.LocationManager
 import android.net.Uri
+import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +35,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -50,6 +56,7 @@ import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
+import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
@@ -59,7 +66,8 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormView(
-    navController: NavController
+    navController: NavController,
+    vm:FormPmViewModel
 ) {
 
     val nama = remember {
@@ -95,6 +103,10 @@ fun FormView(
     val kategoriPpksString = remember {
         mutableStateOf("")
     }
+    val kategoriPpksInt = remember {
+        mutableIntStateOf(0)
+    }
+    vm.getRagam(kategoriPpksInt.intValue)
     val kelaminString = remember {
         mutableStateOf("")
     }
@@ -124,6 +136,10 @@ fun FormView(
     val provinsiString = remember {
         mutableStateOf("")
     }
+    val provinsiInt = remember {
+        mutableIntStateOf(0)
+    }
+    vm.getKabupaten(provinsiInt.intValue)
     val kabupatenString = remember {
         mutableStateOf("")
     }
@@ -132,7 +148,7 @@ fun FormView(
     if (locationPermission.value) {
         location.LocationPermission(lat = lat, long = long)
     }
-
+    val dropCompose = DropdownCompose(vm)
 
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -258,15 +274,21 @@ fun FormView(
                         modifier = Modifier.fillMaxWidth(),
                         "Kategori PPKS",
                         kategoriPpksString.value) {
-                        DropDownDummy(expand = kategoriPpks ) {
-                            kategoriPpksString.value = it
+                        dropCompose.DropDownPpks(expand = kategoriPpks ) { string,id ->
+                            kategoriPpksString.value = string
+                            ragamString.value = ""
+                            kategoriPpksInt.intValue = id
                         }
 
                     }
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    DropdownField(ragam, modifier = Modifier.fillMaxWidth(),"Pilih Ragam",ragamString.value) {
-                        DropDownDummy(expand = ragam ) {
+                    DropdownField(ragam,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Pilih Ragam",
+                        ragamString.value,
+                        isEnable = kategoriPpksInt.intValue != 0) {
+                        dropCompose.DropDownRagam(expand = ragam ) {
                             ragamString.value = it
                         }
                     }
@@ -282,26 +304,32 @@ fun FormView(
                     Row(Modifier
                      .fillMaxWidth()) {
                      DropdownField(kelamin, modifier = Modifier.fillMaxWidth(0.5f),"Jenis Kelamin",kelaminString.value) {
-                         DropDownDummy(expand = kelamin ) {
+                         dropCompose.DropDownJenisKelamin(expand = kelamin ) {
                              kelaminString.value = it
                          }
                      }
                      Spacer(modifier = Modifier.width(4.dp))
                      DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama",agamaString.value){
-                         DropDownDummy(expand = agama ) {
+                         dropCompose.DropDownAgama(expand = agama ) {
                              agamaString.value = it
                          }
                      }
                  }
                     Spacer(modifier = Modifier.height(14.dp))
                     DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi",provinsiString.value) {
-                        DropDownDummy(expand = provinsi ) {
-                            provinsiString.value = it
+                        dropCompose.DropDownProvinsi(expand = provinsi ) { string, int ->
+                            provinsiString.value = string
+                            kabupatenString.value = ""
+                            provinsiInt.intValue = int
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten",kabupatenString.value) {
-                        DropDownDummy(expand = kabupaten ) {
+                    DropdownField(kabupaten,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kabupaten",
+                        kabupatenString.value,
+                        isEnable = provinsiString.value.isNotEmpty()) {
+                        dropCompose.DropDownKabupaten(expand = kabupaten ) {
                             kabupatenString.value = it
                         }
                     }
@@ -327,7 +355,15 @@ fun FormView(
                             )
                         }
                     }) {
-                        locationPermission.value = true
+                        if (locationPermission.value) {
+                            location.getLastKnownLocation(success = {
+
+                            }) {
+
+                            }
+                        } else {
+                            locationPermission.value = true
+                        }
                     }
                 }
             }
@@ -335,5 +371,21 @@ fun FormView(
     }
 
 
+}
+
+fun isLocationEnabled(context: Context): Boolean {
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+}
+
+fun showGPSDisabledAlert(context: Context) {
+    AlertDialog.Builder(context).apply {
+        setTitle("Aktifkan GPS")
+        setMessage("GPS tidak aktif. Anda harus mengaktifkan GPS untuk mengirim form")
+        setPositiveButton("Settings") { _, _ ->
+            context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+        }
+        setNegativeButton("Cancel", null)
+    }.show()
 }
 

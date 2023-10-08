@@ -1,6 +1,7 @@
 package com.example.sipentas.component
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +40,9 @@ fun DropdownField(
     dropDownMenu:@Composable () -> Unit) {
 
     val rotateFloat by animateFloatAsState(targetValue = if (kategoriPpks.value) 0f else -90f)
+    val icon by animateIntAsState(targetValue = if (isEnable) R.drawable.dropdown else R.drawable.larangan_icon)
+    val colorSelect by animateColorAsState(targetValue = if (isEnable) Color(0xFF585757) else Color(0xFF585757).copy(0.5f))
+
     Box {
         Surface(
             color = Color(0xFFE8E8E8),
@@ -78,10 +83,11 @@ fun DropdownField(
                     }
                 }
                 Icon(
-                    painter = painterResource(id = R.drawable.dropdown),
+                    painter = painterResource(id = icon),
                     contentDescription = null,
-                    tint = Color(0xFF585757),
+                    tint = colorSelect,
                     modifier = Modifier
+                        .size(12.dp)
                         .rotate(rotateFloat)
                 )
             }

@@ -1,5 +1,6 @@
 package com.example.sipentas.view.login
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -54,6 +55,7 @@ import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.navigation.AppRoute
 import com.example.sipentas.navigation.BotNavRoute
+import com.example.sipentas.utils.LoadingDialog
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,6 +78,13 @@ fun LoginView(
     }
 
     val scrollState = rememberScrollState()
+    val errorVerification =  remember {
+        mutableStateOf(false)
+    }
+
+    val loading = remember {
+        mutableStateOf(false)
+    }
 
     val animatedPassword
             by animateIntAsState(
@@ -83,7 +92,7 @@ fun LoginView(
                 if (showPassword.value) R.drawable.hide_icon
                 else R.drawable.show_icon
             )
-
+    LoadingDialog(boolean = loading)
     Scaffold {
         Surface(
             Modifier
@@ -112,7 +121,7 @@ fun LoginView(
                     )
                     Spacer(modifier = Modifier.height(15.dp))
                     Text(
-                        text = "Masukkan username dan password untuk memasuki aplikasi",
+                        text = "Masukkan NIK dan password untuk memasuki aplikasi",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.surfaceVariant,
                         modifier = Modifier
@@ -152,7 +161,8 @@ fun LoginView(
                         Spacer(modifier = Modifier.height(20.dp))
                         FilledTextField(
                             username,
-                            "username"
+                            "NIK",
+                            keyboardType = KeyboardType.Number
                         )
                         Spacer(modifier = Modifier.height(15.dp))
                         FilledTextField(
@@ -174,6 +184,15 @@ fun LoginView(
                             visualTransformation = if (showPassword.value) VisualTransformation.None
                             else PasswordVisualTransformation()
                         )
+                        AnimatedVisibility(visible = errorVerification.value) {
+                            Column {
+                                Spacer(modifier = Modifier.height(15.dp))
+                                Text(text = "NIK / Password tidak sesuai",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontSize = 10.sp,
+                                    color = Color(0xFFD34B4B))
+                            }
+                        }
                         Spacer(modifier = Modifier.height(20.dp))
                         ButtonPrimary(text = {
                             Text(
@@ -184,8 +203,15 @@ fun LoginView(
                                 fontSize = 14.sp
                             )
                         }) {
-                            navController.navigate(BotNavRoute.PenerimaManfaat.route)
-//                            loginViewModel.login(username.value,password.value)
+                            errorVerification.value = false
+                            loading.value = true
+                            loginViewModel.login(username.value,password.value, onError = {
+                                errorVerification.value = true
+                                loading.value = false
+                            }) {
+                                loading.value = false
+                                navController.navigate(BotNavRoute.PenerimaManfaat.route)
+                            }
                         }
 
                     }

@@ -49,14 +49,12 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.rememberImagePainter
 import com.example.sipentas.R
+import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
-import com.rizzi.bouquet.ResourceType
-import com.rizzi.bouquet.VerticalPDFReader
-import com.rizzi.bouquet.rememberVerticalPdfReaderState
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -449,20 +447,29 @@ fun FormAssessment(
                         pdfUri.value = uri
                     })
                     Spacer(modifier = Modifier.height(14.dp))
-                    if (pdfUri.value != null) {
-                        val pdfState = rememberVerticalPdfReaderState(
-                            resource = ResourceType.Local(pdfUri.value!!),
-                            isZoomEnable = true
-                        )
-                        VerticalPDFReader(
-                            state = pdfState,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
-                                .background(color = Color.Gray)
-                        )
-                    }
+                    ButtonPrimary(text = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Kirim Form",
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier
+                                    .padding(top = 6.dp, bottom = 6.dp),
+                                fontSize = 14.sp
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Icon(
+                                painter = painterResource(id = R.drawable.send_icon),
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .size(14.dp)
+                            )
+                        }
+                    }) {
 
+                    }
                 }
             }
         }

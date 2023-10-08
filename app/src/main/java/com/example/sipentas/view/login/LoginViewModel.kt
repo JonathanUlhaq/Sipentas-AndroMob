@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.models.LoginModel
 import com.example.sipentas.repositories.LoginRepository
+import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
@@ -13,20 +14,21 @@ import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginViewModel @Inject constructor(val repo: LoginRepository) : ViewModel() {
+class LoginViewModel @Inject constructor(val repo: LoginRepository,val prefs:SharePrefs) : ViewModel() {
 
-    fun login(nik: String, password: String) =
+    fun login(nik: String, password: String,onError:(Exception) -> Unit,onSuccess:() -> Unit) =
         viewModelScope.launch {
             try {
-//                val mediaType = "application/json; charset=utf-8".toMediaType()
-//                val rawData = """{
-//                    "nik": "$nik",
-//                    "password": "$password"
-//                    }""".trimIndent()
-//                val requestBody = rawData.toRequestBody(mediaType)
-                repo.login(LoginModel(nik, password))
+                repo.login(LoginModel(nik, password)).let { item ->
+                    item.token?.let { prefs.saveToken(it) }
+                    Log.d("Sudah Tersimpan",getToken()!!)
+                    onSuccess.invoke()
+                }
             } catch (e: Exception) {
                 Log.e("ERROR LOGIN GABISA", e.toString())
+                onError.invoke(e)
             }
         }
+
+    fun getToken():String? = prefs.getToken()
 }

@@ -70,6 +70,16 @@ class LocationProviders(private val context: Context) {
             SideEffect {
                     getLastKnownLocation(
                         success = { location ->
+                            if (location?.latitude == null) {
+                                getLastKnownLocation({location ->
+                                    lat.value = "Latitude: ${location?.latitude}"
+                                    long.value = "Latitude: ${location?.longitude}"
+                                    Toast.makeText(context,"Akses lokasi diizinkan ${lat.value +" "+long.value}", Toast.LENGTH_SHORT).show()
+                                    Log.d("LATITUDE DAN LONGITUDE",lat.value +" "+ long.value)
+                                }) {
+
+                                }
+                            }
                             lat.value = "Latitude: ${location?.latitude}"
                             long.value = "Latitude: ${location?.longitude}"
                             Toast.makeText(context,"Akses lokasi diizinkan ${lat.value +" "+long.value}", Toast.LENGTH_SHORT).show()

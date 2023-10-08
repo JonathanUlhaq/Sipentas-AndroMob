@@ -6,7 +6,9 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import com.example.sipentas.view.form_pm.FormPmViewModel
 
 @Composable
 fun DropDownDummy(
@@ -32,5 +34,160 @@ fun DropDownDummy(
                 expand.value = false
             }
         )
+    }
+}
+
+class DropdownCompose (val vm: FormPmViewModel) {
+
+
+    @Composable
+    fun DropDownPpks(
+        expand: MutableState<Boolean>,
+        getString: (String,Int) -> Unit
+    ) {
+        val context = LocalContext.current
+        val uiState = vm.kategori.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string?.kategori}") },
+                    onClick = {
+                        getString.invoke("${string?.kategori}",string?.id!!)
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownRagam(
+        expand: MutableState<Boolean>,
+        getString: (String) -> Unit
+    ) {
+        val context = LocalContext.current
+        val uiState = vm.ragam.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string.ragam}") },
+                    onClick = {
+                        getString.invoke("${string.ragam}")
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownJenisKelamin(
+        expand: MutableState<Boolean>,
+        getString: (String) -> Unit
+    ) {
+        val jenis_kelamin = listOf(
+            "LAKI - LAKI",
+            "PEREMPUAN"
+        )
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            jenis_kelamin.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text(string) },
+                    onClick = {
+                        getString.invoke(string)
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownAgama(
+        expand: MutableState<Boolean>,
+        getString: (String) -> Unit
+    ) {
+        val agama = listOf(
+            "Islam",
+            "Kristen Protestan",
+            "Kristen Katolik",
+            "Hindu",
+            "Buddha",
+            "Konghucu",
+            "Lainnya"
+        )
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            agama.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text(string) },
+                    onClick = {
+                        getString.invoke(string)
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownProvinsi(
+        expand: MutableState<Boolean>,
+        getString: (String,Int) -> Unit
+    ) {
+        val uiState = vm.provinsi.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string.nama}") },
+                    onClick = {
+                        getString.invoke("${string.nama}",string.id!!.toInt())
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownKabupaten(
+        expand: MutableState<Boolean>,
+        getString: (String) -> Unit
+    ) {
+        val uiState = vm.kabupaten.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string.nama}") },
+                    onClick = {
+                        getString.invoke("${string.nama}")
+                        expand.value = false
+                    }
+                )
+            }
+        }
     }
 }

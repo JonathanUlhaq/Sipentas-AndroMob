@@ -5,6 +5,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -12,8 +13,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.sipentas.view.assessment.AssessmentView
 import com.example.sipentas.view.atensi.Atensi
+import com.example.sipentas.view.detail_atensi.DetailAtens
 import com.example.sipentas.view.detail_view.DetailView
 import com.example.sipentas.view.form_assessment.FormAssessment
+import com.example.sipentas.view.form_pm.FormPmViewModel
 import com.example.sipentas.view.form_pm.FormView
 import com.example.sipentas.view.list_pm.ListPmView
 import com.example.sipentas.view.list_pm.ListPmViewModel
@@ -25,16 +28,17 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
 
     val loginViewModel = hiltViewModel<LoginViewModel>()
     val listViewModel = hiltViewModel<ListPmViewModel>()
+    val formPmViewModel = hiltViewModel<FormPmViewModel>()
 
 
-    NavHost(navController = navController, startDestination = AppRoute.Login.route) {
+    NavHost(navController = navController, startDestination = if (loginViewModel.getToken() == null)AppRoute.Login.route else BotNavRoute.PenerimaManfaat.route) {
         composable(AppRoute.Login.route) {
             showBottomBar.value = false
             LoginView(navController, loginViewModel)
         }
         composable(AppRoute.Form.route) {
             showBottomBar.value = false
-            FormView(navController)
+            FormView(navController, formPmViewModel)
         }
 
         composable(BotNavRoute.PenerimaManfaat.route) {
@@ -47,11 +51,11 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         }
         composable(BotNavRoute.Atensi.route) {
             showBottomBar.value = true
-            Atensi()
+            Atensi(navController)
         }
         composable(BotNavRoute.Profile.route) {
             showBottomBar.value = true
-            Atensi()
+            Atensi(navController)
         }
 
         composable(
@@ -64,6 +68,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         ) {
             showBottomBar.value = false
             DetailView(navController = navController,
+                vm = formPmViewModel,
                 currentRagam =it.arguments?.getString("ragam")!! ,
                 currentName = it.arguments?.getString("nama")!!,
                 currentKelamin = it.arguments?.getString("kelamin")!!,
@@ -75,6 +80,11 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         composable(AppRoute.FormAssessment.route) {
             showBottomBar.value = false
             FormAssessment(navController = navController)
+        }
+
+        composable(AppRoute.DetailAtensi.route) {
+            showBottomBar.value = false
+            DetailAtens(navController = navController)
         }
 
     }
