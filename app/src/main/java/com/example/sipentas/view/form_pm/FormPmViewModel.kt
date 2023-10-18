@@ -7,11 +7,16 @@ import com.example.sipentas.di.KabupatenModel
 import com.example.sipentas.di.KategoriModel
 import com.example.sipentas.di.ProvinsiModel
 import com.example.sipentas.di.RagamModel
+import com.example.sipentas.models.KecamatanModel
+import com.example.sipentas.models.KelurahanModel
+import com.example.sipentas.models.PostPmModel
+import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.repositories.PmFormRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.MultipartBody
 import java.lang.Exception
 import javax.inject.Inject
 
@@ -29,6 +34,47 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
 
     private val _ragamState = MutableStateFlow<List<RagamModel>>(emptyList())
     val ragam = _ragamState.asStateFlow()
+
+    private val _kecamatan = MutableStateFlow<List<KecamatanModel>>(emptyList())
+    val kecamatan = _kecamatan.asStateFlow()
+
+    private val _kelurahan = MutableStateFlow<List<KelurahanModel>>(emptyList())
+    val kelurahan = _kelurahan.asStateFlow()
+
+    fun postPhoto(
+        photo:MultipartBody.Part,
+        onError:() -> Unit,
+        success:(UploadResponse) -> Unit
+    ) =
+        viewModelScope.launch {
+            try {
+                repo.insertPhoto(photo).let {
+//                    Log.d("Berhasil Loh","Size: ${it.size}")
+                    success.invoke(it)
+                }
+
+            } catch (e:Exception) {
+                Log.e("ERROR","Gagal Upload $e" )
+                onError.invoke()
+            }
+        }
+    fun addPm(
+        body:PostPmModel,
+        onError:() -> Unit,
+        success:() -> Unit
+
+    ) =
+        viewModelScope.launch {
+            try {
+                repo.addPm(body).let {
+                    success.invoke()
+                }
+
+            } catch (e:Exception) {
+                Log.e("ERROR","Gagal Post $e")
+                onError.invoke()
+            }
+        }
 
     fun getKategori() =
         viewModelScope.launch {
@@ -62,6 +108,28 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
             }
         }
 
+    fun getKelurahan(id: Int) =
+        viewModelScope.launch {
+            try {
+                repo.getKelurahan(id).let { item ->
+                    _kelurahan.value = item
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA PROVINSI", e.toString())
+            }
+        }
+
+    fun getKecamatan(id: Int) =
+        viewModelScope.launch {
+            try {
+                repo.getKecamatan(id).let { item ->
+                    _kecamatan.value = item
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA PROVINSI", e.toString())
+            }
+        }
+
     fun getKabupaten(id: Int) =
         viewModelScope.launch {
             try {
@@ -74,8 +142,7 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
         }
 
     init {
-        getProvinsi()
-        getKategori()
+
     }
 
 }

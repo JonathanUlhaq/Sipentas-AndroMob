@@ -3,9 +3,12 @@ package com.example.sipentas.view.form_pm
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.location.LocationManager
 import android.net.Uri
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,6 +49,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -54,15 +58,43 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.widgets.DatePicker
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.default
+import id.zelory.compressor.constraint.destination
+import id.zelory.compressor.constraint.size
+import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.Executors
 
+fun compressImage(file: File, context: Context): File {
+    val compressedFile = File(context.cacheDir, "compressed_" + file.name)
+    val bitmap = BitmapFactory.decodeFile(file.path)
+
+    var outputStream: FileOutputStream? = null
+    try {
+        outputStream = FileOutputStream(compressedFile)
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 80, outputStream) // 80 adalah kualitas gambar setelah dikompres
+    } catch (e: Exception) {
+        e.printStackTrace()
+    } finally {
+        outputStream?.flush()
+        outputStream?.close()
+    }
+
+    return compressedFile
+}
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormView(
@@ -70,6 +102,8 @@ fun FormView(
     vm:FormPmViewModel
 ) {
 
+    vm.getProvinsi()
+    vm.getKategori()
     val nama = remember {
         mutableStateOf("")
     }
@@ -78,6 +112,9 @@ fun FormView(
     }
     val ragam = remember {
         mutableStateOf(false)
+    }
+    val ragamId = remember {
+        mutableIntStateOf(0)
     }
     val agama = remember {
         mutableStateOf(false)
@@ -133,6 +170,9 @@ fun FormView(
     val agamaString = remember {
         mutableStateOf("")
     }
+    val agamaId = remember {
+        mutableIntStateOf(0)
+    }
     val provinsiString = remember {
         mutableStateOf("")
     }
@@ -154,7 +194,48 @@ fun FormView(
     val cameraExecutor = Executors.newSingleThreadExecutor()
     val scrollState = rememberScrollState()
 
+    val keteranganPPks = remember {
+        mutableStateOf("")
+    }
+    val tempatLahir = remember {
+        mutableStateOf("")
+    }
+    val tanggalLahir = remember {
+        mutableStateOf("")
+    }
+    val nomorHandphone = remember {
+        mutableStateOf("")
+    }
+    val kabupatenId = remember {
+        mutableIntStateOf(0)
+    }
+    vm.getKecamatan(kabupatenId.value)
+    val kecamatan = remember {
+        mutableStateOf(false)
+    }
+    val kecamatanString = remember {
+        mutableStateOf("")
+    }
+    val kecamatanId = remember {
+        mutableIntStateOf(0)
+    }
+    vm.getKelurahan(kecamatanId.intValue)
+    val kelurahan = remember {
+        mutableStateOf(false)
+    }
+    val kelurahanString = remember {
+        mutableStateOf("")
+    }
+    val kelurahanId = remember {
+        mutableIntStateOf(0)
+    }
 
+    val namaJalan = remember {
+        mutableStateOf("")
+    }
+    val nik = remember {
+        mutableStateOf("")
+    }
     if (openCamera.value) {
         CameraView(
             outputDirectory = output,
@@ -272,7 +353,7 @@ fun FormView(
 
                     DropdownField(kategoriPpks,
                         modifier = Modifier.fillMaxWidth(),
-                        "Kategori PPKS",
+                        "Kategori PPKS *",
                         kategoriPpksString.value) {
                         dropCompose.DropDownPpks(expand = kategoriPpks ) { string,id ->
                             kategoriPpksString.value = string
@@ -285,21 +366,56 @@ fun FormView(
 
                     DropdownField(ragam,
                         modifier = Modifier.fillMaxWidth(),
-                        "Pilih Ragam",
+                        "Pilih Ragam *",
                         ragamString.value,
                         isEnable = kategoriPpksInt.intValue != 0) {
-                        dropCompose.DropDownRagam(expand = ragam ) {
-                            ragamString.value = it
+                        dropCompose.DropDownRagam(expand = ragam ) { string, id ->
+                            ragamString.value = string
+                            ragamId.intValue = id
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
-                        textString = nama,
-                        label = "nama penerima manfaat",
-                        minHeight = 100,
+                        textString = keteranganPPks,
+                        label = "Keterangan PPKS",
                         imeAction = ImeAction.Default,
-                        singleLine = true
+                        singleLine = false,
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
+
+
+                    Spacer(modifier = Modifier.height(18.dp))
+                    FilledTextField(
+                        textString = nama,
+                        label = "Nama PM *",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = nik,
+                        label = "NIK",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = tempatLahir,
+                        label = "Tempat Lahir",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DatePicker(context = context, date = tanggalLahir)
+
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(Modifier
                      .fillMaxWidth()) {
@@ -310,12 +426,24 @@ fun FormView(
                      }
                      Spacer(modifier = Modifier.width(4.dp))
                      DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama",agamaString.value){
-                         dropCompose.DropDownAgama(expand = agama ) {
-                             agamaString.value = it
+                         dropCompose.DropDownAgama(expand = agama ) { string,index ->
+                             agamaString.value = string
+                             agamaId.intValue = index
                          }
                      }
                  }
                     Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = nomorHandphone,
+                        label = "Nomor Handphone",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+
                     DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi",provinsiString.value) {
                         dropCompose.DropDownProvinsi(expand = provinsi ) { string, int ->
                             provinsiString.value = string
@@ -329,10 +457,39 @@ fun FormView(
                         "Kabupaten",
                         kabupatenString.value,
                         isEnable = provinsiString.value.isNotEmpty()) {
-                        dropCompose.DropDownKabupaten(expand = kabupaten ) {
-                            kabupatenString.value = it
+                        dropCompose.DropDownKabupaten(expand = kabupaten ) { string,id ->
+                            kabupatenString.value = string
+                            kabupatenId.intValue = id
                         }
                     }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(kecamatan,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kecamatan",
+                        kecamatanString.value,
+                        isEnable = kabupatenString.value.isNotEmpty()) {
+                        dropCompose.DropDownKecamatan(expand = kecamatan ) { string, id ->
+                            kecamatanString.value = string
+                            kecamatanId.intValue = id
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(kelurahan,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kelurahan",
+                        kelurahanString.value,
+                        isEnable = kecamatanString.value.isNotEmpty()) {
+                        dropCompose.DropDownKelurahan(expand = kelurahan ) { string, id ->
+                            kelurahanString.value = string
+//                            kelurahanId.intValue = id
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = namaJalan,
+                        label = "Nama Jalan / Alamat Lengkap",
+                        imeAction = ImeAction.Default,
+                        singleLine = false)
                     Spacer(modifier = Modifier.height(20.dp))
                     ButtonPrimary(text = {
                         Row(
@@ -361,8 +518,54 @@ fun FormView(
                             }) {
 
                             }
+
                         } else {
                             locationPermission.value = true
+                        }
+                        if (capturedImagebyUri.value.path != null) {
+                            runBlocking {
+                                val file = File(capturedImagebyUri.value.path!!)
+                                val compressor = Compressor.compress(context, file) {
+                                    default()
+                                    destination(file)
+                                }
+                                Log.d("EXIST", (compressor.length() / 1024).toString())
+                                Log.d("UKURAN", compressor.name)
+                                val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                                val gambar = MultipartBody.Part.createFormData(
+                                    "file",
+                                    compressor.name,
+                                    requestBody
+                                )
+
+//                                vm.postPhoto(gambar) {
+//                                        vm.addPm(
+//                                            PostPmModel(
+//                                                name = nama.value,
+//                                                date_of_birth = tanggalLahir.value,
+//                                                flag = 1,
+//                                                foto_diri = it.file_url!!,
+//                                                gender = kelaminString.value,
+//                                                kabupaten_id = kabupatenId.intValue,
+//                                                kecamatan_id = kecamatanId.intValue,
+//                                                kelurahan_id = kelurahanId.intValue,
+//                                                ket_ppks = keteranganPPks.value,
+//                                                kluster_id = kategoriPpksInt.intValue,
+//                                                kode_pos = "57716",
+//                                                nama_jalan = namaJalan.value,
+//                                                nik = nik.value,
+//                                                phone_number = nomorHandphone.value,
+//                                                place_of_birth = tempatLahir.value,
+//                                                provinsi_id = provinsiInt.intValue,
+//                                                ragam_id = ragamId.intValue,
+//                                                religion = agamaId.intValue,
+//                                                satker_id = 9
+//                                            )
+//                                        ) {
+//                                            navController.popBackStack()
+//                                        }
+//                                }
+                            }
                         }
                     }
                 }

@@ -32,6 +32,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,9 +43,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
@@ -57,6 +60,7 @@ import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.form_pm.FormPmViewModel
+import com.example.sipentas.widgets.DatePicker
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -64,15 +68,31 @@ import java.util.concurrent.Executors
 @Composable
 fun DetailView(
     navController: NavController,
-    vm:FormPmViewModel,
-    currentRagam:String,
-    currentName:String,
-    currentKelamin:String,
-    currentAgama:String,
-    currentProvinsi:String,
-    currentKabupaten:String
+    vm: FormPmViewModel,
+    currentRagam: String,
+    currentName: String,
+    currentKelamin: String,
+    currentAgama: String,
+    currentProvinsi: String,
+    currentKabupaten: String,
+    currentKluster: String,
+    currentIdKluster: String,
+    currentIdProvinsi: String,
+    ketPpks: String,
+    currentNik: String,
+    currentTempatLahir: String,
+    currentTanggalLahir: String,
+    currentNomorHandphone: String,
+    currentKecamatan: String,
+    currentKelurahan: String,
+    currentJalan: String,
+    currentKabupId:String,
+    currentKecId:String,
+    fotoDiri:String
 ) {
 
+    vm.getProvinsi()
+    vm.getKategori()
     val nama = remember {
         mutableStateOf(currentName)
     }
@@ -119,7 +139,7 @@ fun DetailView(
         mutableStateOf(currentKabupaten)
     }
     val kategoriPpksString = remember {
-        mutableStateOf("")
+        mutableStateOf(currentKluster)
     }
     val kelaminString = remember {
         mutableStateOf(currentKelamin)
@@ -148,7 +168,9 @@ fun DetailView(
     if (locationPermission.value) {
         location.LocationPermission(lat = lat, long = long)
     }
-
+    val keteranganPPks = remember {
+        mutableStateOf(ketPpks)
+    }
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
     val scrollState = rememberScrollState()
@@ -156,13 +178,65 @@ fun DetailView(
     val dropCompose = DropdownCompose(vm)
 
     val kategoriPpksInt = remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(currentIdKluster.toInt())
     }
     val provinsiInt = remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(currentIdProvinsi.toInt())
     }
     vm.getRagam(kategoriPpksInt.intValue)
     vm.getKabupaten(provinsiInt.intValue)
+
+    val formWajib = remember {
+        mutableStateOf(false)
+    }
+
+
+    val nik = remember {
+        mutableStateOf(currentNik)
+    }
+    val tempatLahir = remember {
+        mutableStateOf(currentTempatLahir)
+    }
+    val tanggalLahir = remember {
+        mutableStateOf(currentTanggalLahir)
+    }
+    val nomorHandphone = remember {
+        mutableStateOf(currentNomorHandphone)
+    }
+    val kecamatanString = remember {
+        mutableStateOf(currentKecamatan)
+    }
+    val kelurahanString = remember {
+        mutableStateOf(currentKelurahan)
+    }
+    val namaJalan = remember {
+        mutableStateOf(currentJalan)
+    }
+    val kabupatenId = remember {
+        mutableIntStateOf(currentKabupId.toInt())
+    }
+    vm.getKecamatan(kabupatenId.value)
+    val kecamatan = remember {
+        mutableStateOf(false)
+    }
+    val kecamatanId = remember {
+        mutableIntStateOf(currentKecId.toInt())
+    }
+    vm.getKelurahan(kecamatanId.intValue)
+    val kelurahan = remember {
+        mutableStateOf(false)
+    }
+    val kelurahanId = remember {
+        mutableLongStateOf(0)
+    }
+
+    vm.getKelurahan(kecamatanId.intValue)
+    formWajib.value = kategoriPpksString.value.isEmpty() || ragamString.value.isEmpty()
+            || nama.value.isEmpty()
+            || kelaminString.value.isEmpty()
+            || agamaString.value.isEmpty()
+            || provinsiString.value.isEmpty()
+            || kabupatenString.value.isEmpty()
 
 
     if (openCamera.value) {
@@ -185,7 +259,7 @@ fun DetailView(
             }
         )
     } else {
-        Scaffold (
+        Scaffold(
             topBar = {
                 Row(
                     Modifier
@@ -210,31 +284,35 @@ fun DetailView(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                   Column(
-                       horizontalAlignment = Alignment.CenterHorizontally
-                   ) {
-                       Switch(checked =isEdit.value ,
-                           onCheckedChange = {isEdit.value = it},
-                           colors = SwitchDefaults.colors(
-                               checkedBorderColor = Color.Transparent,
-                               checkedThumbColor = MaterialTheme.colorScheme.background,
-                               checkedTrackColor = MaterialTheme.colorScheme.primary,
-                               uncheckedBorderColor = Color.Transparent,
-                               uncheckedThumbColor = MaterialTheme.colorScheme.background.copy(0.6f),
-                               uncheckedTrackColor = MaterialTheme.colorScheme.surface
-                           ),
-                           modifier = Modifier
-                               .scale(0.7f))
-                       Text(text = "Ubah",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 10.sp,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .offset(y= -10.dp))
-                   }
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Switch(
+                            checked = isEdit.value,
+                            onCheckedChange = { isEdit.value = it },
+                            colors = SwitchDefaults.colors(
+                                checkedBorderColor = Color.Transparent,
+                                checkedThumbColor = MaterialTheme.colorScheme.background,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                uncheckedBorderColor = Color.Transparent,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.background.copy(0.6f),
+                                uncheckedTrackColor = MaterialTheme.colorScheme.surface
+                            ),
+                            modifier = Modifier
+                                .scale(0.7f)
+                        )
+                        Text(
+                            text = "Ubah",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .offset(y = -10.dp)
+                        )
+                    }
                 }
             }
-                ) {
+        ) {
             Surface(
                 Modifier
                     .padding(it)
@@ -257,7 +335,9 @@ fun DetailView(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable {
-                                    showPermission.value = true
+                                   if (isEdit.value) {
+                                       showPermission.value = true
+                                   }
                                 }
                                 .wrapContentSize(Alignment.Center)
 
@@ -270,7 +350,14 @@ fun DetailView(
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )
-                            } else {
+                            } else if (!fotoDiri.isEmpty() || fotoDiri != "0") {
+                                AsyncImage(model = fotoDiri,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize())
+                            }
+                            else {
                                 Column(
                                     Modifier
                                         .fillMaxWidth(),
@@ -297,111 +384,275 @@ fun DetailView(
                     Divider()
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    DropdownField(kategoriPpks,
+                    DropdownField(
+                        kategoriPpks,
                         modifier = Modifier.fillMaxWidth(),
-                        "Kategori PPKS",
+                        "Kategori PPKS *",
                         kategoriPpksString.value,
-                        isEnable = isEdit.value) {
+                        isEnable = isEdit.value
+                    ) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            dropCompose.DropDownPpks(expand = kategoriPpks ) { string,id ->
+                            dropCompose.DropDownPpks(expand = kategoriPpks) { string, id ->
                                 kategoriPpksString.value = string
                                 ragamString.value = ""
                                 kategoriPpksInt.intValue = id
                             }
                         }
-
-
+                    }
+                    AnimatedVisibility(visible = kategoriPpksString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Kategori PPKS wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    DropdownField(ragam, modifier = Modifier.fillMaxWidth(),
-                        "Pilih Ragam",ragamString.value,
-                        isEnable = isEdit.value && kategoriPpksInt.intValue != 0) {
+                    DropdownField(
+                        ragam, modifier = Modifier.fillMaxWidth(),
+                        "Pilih Ragam *", ragamString.value,
+                        isEnable = isEdit.value && kategoriPpksString.value.isNotEmpty()
+                    ) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            dropCompose.DropDownRagam(expand = ragam ) {
-                                ragamString.value = it
+                            dropCompose.DropDownRagam(expand = ragam) { string, index ->
+                                ragamString.value = string
+                            }
+                        }
+                    }
+                    AnimatedVisibility(visible = ragamString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Ragam wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = keteranganPPks,
+                        label = "Keterangan PPKS",
+                        imeAction = ImeAction.Default,
+                        singleLine = false,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+
+
+                    Spacer(modifier = Modifier.height(18.dp))
+
+                    FilledTextField(
+                        textString = nama,
+                        label = "Nama PM *",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        enabled = isEdit.value,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    AnimatedVisibility(visible = nama.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Nama PM wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = nik,
+                        label = "NIK",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = tempatLahir,
+                        label = "Tempat Lahir",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DatePicker(context = context, date = tanggalLahir)
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                    ) {
+
+                        Column {
+
+                            DropdownField(
+                                kelamin, modifier = Modifier.fillMaxWidth(0.5f),
+                                "Jenis Kelamin", kelaminString.value,
+                                isEnable = isEdit.value
+                            ) {
+                                AnimatedVisibility(visible = isEdit.value) {
+                                    dropCompose.DropDownJenisKelamin(expand = kelamin) {
+                                        kelaminString.value = it
+                                    }
+                                }
+                            }
+                            AnimatedVisibility(visible = kelaminString.value.isEmpty()) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "* Jenis Kelamin wajib diisi",
+                                        fontSize = 10.sp,
+                                        color = Color.Red
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Column {
+                            DropdownField(
+                                agama, modifier = Modifier.fillMaxWidth(), "Agama",
+                                agamaString.value,
+                                isEnable = isEdit.value
+                            ) {
+                                AnimatedVisibility(visible = isEdit.value) {
+                                    dropCompose.DropDownAgama(expand = agama) { string, index ->
+                                        agamaString.value = string
+                                    }
+                                }
+                            }
+                            AnimatedVisibility(visible = agamaString.value.isEmpty()) {
+                                Column {
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = "* Agama wajib diisi",
+                                        fontSize = 10.sp,
+                                        color = Color.Red
+                                    )
+                                }
                             }
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
-                        textString = nama,
-                        label = "nama penerima manfaat",
-                        minHeight = 100,
+                        textString = nomorHandphone,
+                        label = "Nomor Handphone",
                         imeAction = ImeAction.Default,
                         singleLine = true,
-                        enabled = isEdit.value
+                        keyboardType = KeyboardType.Number,
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(Modifier
-                        .fillMaxWidth()) {
-
-                        DropdownField(kelamin, modifier = Modifier.fillMaxWidth(0.5f),
-                            "Jenis Kelamin",kelaminString.value,
-                            isEnable = isEdit.value) {
-                            AnimatedVisibility(visible = isEdit.value) {
-                                dropCompose.DropDownJenisKelamin(expand = kelamin ) {
-                                    kelaminString.value = it
-                                }
-                            }
-
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        DropdownField(agama, modifier = Modifier.fillMaxWidth(),"Agama",
-                            agamaString.value,
-                            isEnable = isEdit.value){
-                            AnimatedVisibility(visible = isEdit.value) {
-                                dropCompose.DropDownAgama(expand = agama ) {
-                                    agamaString.value = it
-                                }
-                            }
-
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(provinsi, modifier = Modifier.fillMaxWidth(),"Provinsi",
+                    Spacer(modifier = Modifier.height(18.dp))
+                    DropdownField(
+                        provinsi, modifier = Modifier.fillMaxWidth(), "Provinsi",
                         provinsiString.value,
-                        isEnable = isEdit.value) {
+                        isEnable = isEdit.value
+                    ) {
                         AnimatedVisibility(visible = isEdit.value) {
-                            dropCompose.DropDownProvinsi(expand = provinsi ) { string, int ->
+                            dropCompose.DropDownProvinsi(expand = provinsi) { string, int ->
                                 provinsiString.value = string
                                 kabupatenString.value = ""
                                 provinsiInt.intValue = int
                             }
                         }
-
+                    }
+                    AnimatedVisibility(visible = provinsiString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Provinsi wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(kabupaten, modifier = Modifier.fillMaxWidth(),"Kabupaten",
+                    DropdownField(
+                        kabupaten,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kabupaten *",
                         kabupatenString.value,
-                        isEnable = isEdit.value && provinsiString.value.isNotEmpty()) {
-                        AnimatedVisibility(visible = isEdit.value) {
-                            dropCompose.DropDownKabupaten(expand = kabupaten ) {
-                                kabupatenString.value = it
+                        isEnable = provinsiString.value.isNotEmpty()
+                    ) {
+                        dropCompose.DropDownKabupaten(expand = kabupaten) { string, id ->
+                            kabupatenString.value = string
+                            kabupatenId.intValue = id
+                        }
+                    }
+                    AnimatedVisibility(visible = kabupatenString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Kabupaten wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(
+                        kecamatan,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kecamatan",
+                        kecamatanString.value,
+                        isEnable = kabupatenString.value.isNotEmpty()
+                    ) {
+                        dropCompose.DropDownKecamatan(expand = kecamatan) { string, id ->
+                            kecamatanString.value = string
+                            kecamatanId.intValue = id
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    DropdownField(
+                        kelurahan,
+                        modifier = Modifier.fillMaxWidth(),
+                        "Kelurahan",
+                        kelurahanString.value,
+                        isEnable = kecamatanString.value.isNotEmpty()
+                    ) {
+                        dropCompose.DropDownKelurahan(expand = kelurahan) { string, id ->
+                            kelurahanString.value = string
+                            kelurahanId.longValue = id
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = namaJalan,
+                        label = "Nama Jalan / Alamat Lengkap",
+                        imeAction = ImeAction.Default,
+                        singleLine = false
+                    )
+                    AnimatedVisibility(visible = isEdit.value) {
+                        Column {
+                            Spacer(modifier = Modifier.height(20.dp))
+                            ButtonPrimary(text = {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "Ubah Data",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        modifier = Modifier
+                                            .padding(top = 6.dp, bottom = 6.dp),
+                                        fontSize = 14.sp
+                                    )
+
+                                }
+                            }) {
+
                             }
                         }
-
-                    }
-                    AnimatedVisibility(visible = isEdit.value) {
-                      Column {
-                          Spacer(modifier = Modifier.height(20.dp))
-                          ButtonPrimary(text = {
-                              Row(
-                                  verticalAlignment = Alignment.CenterVertically
-                              ) {
-                                  Text(
-                                      text = "Ubah Data",
-                                      style = MaterialTheme.typography.titleMedium,
-                                      modifier = Modifier
-                                          .padding(top = 6.dp, bottom = 6.dp),
-                                      fontSize = 14.sp
-                                  )
-
-                              }
-                          }) {
-
-                          }
-                      }
                     }
 
                 }

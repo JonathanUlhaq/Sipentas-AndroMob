@@ -67,7 +67,7 @@ class DropdownCompose (val vm: FormPmViewModel) {
     @Composable
     fun DropDownRagam(
         expand: MutableState<Boolean>,
-        getString: (String) -> Unit
+        getString: (String,Int) -> Unit
     ) {
         val context = LocalContext.current
         val uiState = vm.ragam.collectAsState().value
@@ -80,7 +80,7 @@ class DropdownCompose (val vm: FormPmViewModel) {
                 DropdownMenuItem(
                     text = { Text("${string.ragam}") },
                     onClick = {
-                        getString.invoke("${string.ragam}")
+                        getString.invoke("${string.ragam}",string.id!!)
                         expand.value = false
                     }
                 )
@@ -94,7 +94,7 @@ class DropdownCompose (val vm: FormPmViewModel) {
         getString: (String) -> Unit
     ) {
         val jenis_kelamin = listOf(
-            "LAKI - LAKI",
+            "LAKI-LAKI",
             "PEREMPUAN"
         )
         DropdownMenu(
@@ -117,27 +117,26 @@ class DropdownCompose (val vm: FormPmViewModel) {
     @Composable
     fun DropDownAgama(
         expand: MutableState<Boolean>,
-        getString: (String) -> Unit
+        getString: (String,Int) -> Unit
     ) {
         val agama = listOf(
             "Islam",
-            "Kristen Protestan",
             "Kristen Katolik",
+            "Kristen Protestan",
+            "Budha",
             "Hindu",
-            "Buddha",
-            "Konghucu",
             "Lainnya"
         )
         DropdownMenu(
             expanded = expand.value,
             onDismissRequest = { expand.value = false }
         ) {
-            agama.forEach {
-                    string ->
+            agama.forEachIndexed {
+                   index, string ->
                 DropdownMenuItem(
                     text = { Text(string) },
                     onClick = {
-                        getString.invoke(string)
+                        getString.invoke(string,index+1)
                         expand.value = false
                     }
                 )
@@ -171,7 +170,7 @@ class DropdownCompose (val vm: FormPmViewModel) {
     @Composable
     fun DropDownKabupaten(
         expand: MutableState<Boolean>,
-        getString: (String) -> Unit
+        getString: (String,Int) -> Unit
     ) {
         val uiState = vm.kabupaten.collectAsState().value
         DropdownMenu(
@@ -183,7 +182,52 @@ class DropdownCompose (val vm: FormPmViewModel) {
                 DropdownMenuItem(
                     text = { Text("${string.nama}") },
                     onClick = {
-                        getString.invoke("${string.nama}")
+                        getString.invoke(string.nama!!,string.id!!.toInt())
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+
+    @Composable
+    fun DropDownKecamatan(
+        expand: MutableState<Boolean>,
+        getString: (String,Int) -> Unit
+    ) {
+        val uiState = vm.kecamatan.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string.nama}") },
+                    onClick = {
+                        getString.invoke(string.nama!!,string.id!!.toInt())
+                        expand.value = false
+                    }
+                )
+            }
+        }
+    }
+    @Composable
+    fun DropDownKelurahan(
+        expand: MutableState<Boolean>,
+        getString: (String,Long) -> Unit
+    ) {
+        val uiState = vm.kelurahan.collectAsState().value
+        DropdownMenu(
+            expanded = expand.value,
+            onDismissRequest = { expand.value = false }
+        ) {
+            uiState.forEach {
+                    string ->
+                DropdownMenuItem(
+                    text = { Text("${string.nama}") },
+                    onClick = {
+                        getString.invoke(string.nama!!,string.id!!.toLong())
                         expand.value = false
                     }
                 )

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 
@@ -25,7 +26,7 @@ import androidx.compose.ui.unit.dp
 fun FilledTextField(
     textString: MutableState<String>,
     label: String,
-    minHeight: Int = 1,
+    minHeight: Dp = TextFieldDefaults.MinHeight,
     textColor:Color = Color(0xFF434343),
     backgroundColor:Color = MaterialTheme.colorScheme.onSurface,
     labelColor:Color = MaterialTheme.colorScheme.surface,
@@ -34,6 +35,7 @@ fun FilledTextField(
     singleLine: Boolean = true,
     imeAction: ImeAction = ImeAction.Done,
     enabled:Boolean = true,
+    modifier: Modifier = Modifier.fillMaxWidth(),
     trailingIcon: @Composable () -> Unit = {}
 ) {
     TextField(
@@ -41,8 +43,8 @@ fun FilledTextField(
         onValueChange = { string ->
             textString.value = string
         },
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
+            .defaultMinSize(minHeight = minHeight)
          ,
         colors = TextFieldDefaults.textFieldColors(
             disabledIndicatorColor = Color.Transparent,
@@ -72,6 +74,8 @@ fun FilledTextField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
         visualTransformation = visualTransformation,
         singleLine = singleLine,
-        enabled = enabled
+        enabled = enabled,
+        textStyle = MaterialTheme.typography.bodyMedium,
+
     )
 }

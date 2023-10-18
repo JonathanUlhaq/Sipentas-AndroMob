@@ -38,6 +38,29 @@ fun ButtonPrimary(
 }
 
 @Composable
+fun ButtonSecondary(
+    text:@Composable () -> Unit,
+    backgroundColor:Color,
+    modifier: Modifier,
+    onClick:() -> Unit
+) {
+    Button(
+        onClick = {
+            onClick.invoke()
+        },
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor ,
+            contentColor = Color.White
+        ),
+        modifier = modifier
+            .fillMaxWidth()
+    ) {
+        text.invoke()
+    }
+}
+
+@Composable
 fun OutlineButtonPrimary(
     text:@Composable () -> Unit,
     onClick:() -> Unit
@@ -58,3 +81,4 @@ fun OutlineButtonPrimary(
         text.invoke()
     }
 }
+

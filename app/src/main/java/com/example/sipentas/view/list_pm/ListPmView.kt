@@ -37,17 +37,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.sipentas.R
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
 import com.example.sipentas.models.PmModel
 import com.example.sipentas.navigation.AppRoute
+import com.example.sipentas.utils.ComposeDialog
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -63,13 +66,24 @@ fun ListPmView(
     val search = remember {
         mutableStateOf("")
     }
+    val confirmDelete = remember {
+        mutableStateOf(false)
+    }
     val context = LocalContext.current
+
+    ComposeDialog(
+        title = "Hapus Data",
+        desc = " Apakah anda yakin menghapus data ini ?",
+        boolean = confirmDelete
+    ) {
+
+    }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                          navController.navigate(AppRoute.Form.route)
+                    navController.navigate(AppRoute.Form.route)
                 },
                 containerColor = MaterialTheme.colorScheme.primary,
                 shape = CircleShape
@@ -91,7 +105,7 @@ fun ListPmView(
             color = MaterialTheme.colorScheme.primary
         ) {
             Column {
-                HeaderList(search,"Penerima Manfaat")
+                HeaderList(search, "Penerima Manfaat")
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
                     if (uiState.isNotEmpty()) {
@@ -101,9 +115,9 @@ fun ListPmView(
                             content = {
                                 items(uiState) { item ->
                                     val delete = SwipeAction(
-                                        icon = painterResource(id = R.drawable.trash_icon),
+                                        icon = painterResource(id = R.drawable.add_icon),
                                         background = Color(0xFFEF3131),
-                                        onSwipe = { Toast.makeText(context,"Terhapus ${item.name}",Toast.LENGTH_SHORT).show()}
+                                        onSwipe = { confirmDelete.value = true }
                                     )
                                     SwipeableActionsBox(
                                         endActions = listOf(delete),
@@ -141,6 +155,20 @@ private fun ListPmItem(
                             + "/${item.agama}"
                             + "/${item.nama_provinsi}"
                             + "/${item.nama_kabupaten}"
+                            + "/${item.nama_kluster}"
+                            + "/${item.id_kluster}"
+                            + "/${item.id_provinsi}"
+                            + "/${if (!item.ket_ppks.isNullOrEmpty()) item.ket_ppks else "0"}"
+                            + "/${if (!item.place_of_birth.isNullOrEmpty()) item.place_of_birth else "0"}"
+                            + "/${if (!item.date_of_birth.isNullOrEmpty()) item.date_of_birth else "0"}"
+                            + "/${if (!item.phone_number.isNullOrEmpty()) item.phone_number else "0"}"
+                            + "/${if (!item.nik.isNullOrEmpty()) item.nik else "0"}"
+                            + "/${if (!item.nama_kelurahan.isNullOrEmpty()) item.nama_kelurahan else "0"}"
+                            + "/${if (!item.id_kecamatan.isNullOrEmpty()) item.id_kecamatan else "0"}"
+                            + "/${if (!item.nama_kecamatan.isNullOrEmpty()) item.nama_kecamatan else "0"}"
+                            + "/${if (!item.id_kabupaten.isNullOrEmpty()) item.id_kabupaten else "0"}"
+                            + "/${if (!item.nama_jalan.isNullOrEmpty()) item.nama_jalan else "0"}"
+                            + "?foto_diri=${if (!item.foto_diri.isNullOrEmpty()) item.foto_diri else "0"}"
                 )
             }
     ) {
@@ -155,11 +183,18 @@ private fun ListPmItem(
                 modifier = Modifier
                     .size(width = 80.dp, height = 44.dp)
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.gambar_person),
-                    contentDescription = null,
-                    modifier = Modifier
-                )
+               if (item.foto_diri.isNullOrEmpty()) {
+                   Image(
+                       painter = painterResource(id = R.drawable.gambar_person),
+                       contentDescription = null,
+                       modifier = Modifier
+                   )
+               } else {
+                   AsyncImage(model = item.foto_diri,
+                       contentDescription = null,
+                    contentScale = ContentScale.Crop)
+               }
+
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column {

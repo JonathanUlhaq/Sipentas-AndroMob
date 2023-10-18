@@ -203,6 +203,8 @@ fun LoginView(
                                 fontSize = 14.sp
                             )
                         }) {
+//                            navController.navigate(BotNavRoute.PenerimaManfaat.route)
+
                             errorVerification.value = false
                             loading.value = true
                             loginViewModel.login(username.value,password.value, onError = {

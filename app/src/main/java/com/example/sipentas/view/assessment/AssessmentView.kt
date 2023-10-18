@@ -107,6 +107,8 @@ fun AssessmentView(navController: NavController) {
                                         .clickable {
                                             if (status[index] == "Belum Ditangani") {
                                                 navController.navigate(AppRoute.FormAssessment.route)
+                                            } else if (status[index] == "Sudah Ditangani") {
+                                                navController.navigate(AppRoute.DetailAssessment.route)
                                             }
                                         }
                                 ) {

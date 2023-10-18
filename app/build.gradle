@@ -51,6 +51,8 @@ android {
 
 dependencies {
 
+//    Compresser Photo
+    implementation 'id.zelory:compressor:3.0.1'
 
 // Swipe
     implementation "me.saket.swipe:swipe:1.2.0"

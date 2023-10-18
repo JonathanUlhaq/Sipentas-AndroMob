@@ -6,9 +6,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,11 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -51,10 +50,12 @@ import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
+import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.widgets.DatePicker
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -187,6 +188,33 @@ fun FormAssessment(
     }
     val pdfUri = remember {
         mutableStateOf<Uri?>(null)
+    }
+    val tanggalLahir = remember {
+        mutableStateOf("")
+    }
+    val petugas = remember {
+        mutableStateOf("")
+    }
+    val dtks = remember {
+        mutableStateOf("")
+    }
+    val namaBapak = remember {
+        mutableStateOf("")
+    }
+    val namaIbu = remember {
+        mutableStateOf("")
+    }
+    val nikIbu = remember {
+        mutableStateOf("")
+    }
+    val namaWali = remember {
+        mutableStateOf("")
+    }
+    val penghasilan = remember {
+        mutableStateOf("")
+    }
+    val catatan = remember {
+        mutableStateOf("")
     }
 
 
@@ -374,6 +402,27 @@ fun FormAssessment(
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
+                    DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment")
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = petugas,
+                        label = "Petugas",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = dtks,
+                        label = "Status DTKS",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
                     DropdownField(
                         statusOrtu,
                         modifier = Modifier.fillMaxWidth(),
@@ -411,6 +460,61 @@ fun FormAssessment(
                             }
                         }
                     }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = namaBapak,
+                        label = "Nama Bapak",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = namaIbu,
+                        label = "Nama Ibu",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = nikIbu,
+                        label = "NIK Ibu",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = namaWali,
+                        label = "Nama Wali",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = penghasilan,
+                        label = "Penghasilan",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        keyboardType = KeyboardType.Number
+                    )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(
+                        textString = catatan,
+                        label = "Catatan",
+                        imeAction = ImeAction.Default,
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
 //                    Foto
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(
@@ -563,7 +667,7 @@ fun getFileName(context: Context, uri: Uri): String {
 }
 
 @Composable
-private fun FotoBox(
+fun FotoBox(
     showPermissionRumah: MutableState<Boolean>,
     capturedImagebyUriRumah: MutableState<Uri>,
     modifier: Modifier = Modifier,
