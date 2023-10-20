@@ -81,6 +81,9 @@ fun LoginView(
     val errorVerification =  remember {
         mutableStateOf(false)
     }
+    val errorMessage = remember {
+        mutableStateOf("")
+    }
 
     val loading = remember {
         mutableStateOf(false)
@@ -187,7 +190,7 @@ fun LoginView(
                         AnimatedVisibility(visible = errorVerification.value) {
                             Column {
                                 Spacer(modifier = Modifier.height(15.dp))
-                                Text(text = "NIK / Password tidak sesuai",
+                                Text(text = errorMessage.value,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontSize = 10.sp,
                                     color = Color(0xFFD34B4B))
@@ -210,6 +213,11 @@ fun LoginView(
                             loginViewModel.login(username.value,password.value, onError = {
                                 errorVerification.value = true
                                 loading.value = false
+                                errorMessage.value = when(it.toString()) {
+                                    "retrofit2.HttpException: HTTP 401 Unauthorized" -> "Kamu sedang login, logout terlebih dahulu"
+                                    "retrofit2.HttpException: HTTP 401 Unauthorized" -> "NIK / Password salah"
+                                    else -> "NIK / Password tidak boleh kosong"
+                                }
                             }) {
                                 loading.value = false
                                 navController.navigate(BotNavRoute.PenerimaManfaat.route)

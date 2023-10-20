@@ -7,8 +7,10 @@ import com.example.sipentas.di.KabupatenModel
 import com.example.sipentas.di.KategoriModel
 import com.example.sipentas.di.ProvinsiModel
 import com.example.sipentas.di.RagamModel
+import com.example.sipentas.models.AddPmResponse
 import com.example.sipentas.models.KecamatanModel
 import com.example.sipentas.models.KelurahanModel
+import com.example.sipentas.models.PmUpdateBody
 import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.repositories.PmFormRepository
@@ -61,12 +63,31 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
     fun addPm(
         body:PostPmModel,
         onError:() -> Unit,
-        success:() -> Unit
+        success:(AddPmResponse) -> Unit
 
     ) =
         viewModelScope.launch {
             try {
                 repo.addPm(body).let {
+                    success.invoke(it)
+                }
+
+            } catch (e:Exception) {
+                Log.e("ERROR","Gagal Post $e")
+                onError.invoke()
+            }
+        }
+
+    fun updatePm(
+        body:PmUpdateBody,
+        id:Int,
+        onError:() -> Unit,
+        success:() -> Unit
+
+    ) =
+        viewModelScope.launch {
+            try {
+                repo.updatePm(id,body).let {
                     success.invoke()
                 }
 

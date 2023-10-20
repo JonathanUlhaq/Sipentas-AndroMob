@@ -4,8 +4,10 @@ import com.example.sipentas.di.KabupatenModel
 import com.example.sipentas.di.KategoriModel
 import com.example.sipentas.di.ProvinsiModel
 import com.example.sipentas.di.RagamModel
+import com.example.sipentas.models.AddPmResponse
 import com.example.sipentas.models.KecamatanModel
 import com.example.sipentas.models.KelurahanModel
+import com.example.sipentas.models.PmUpdateBody
 import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.network.SipentasAPI
@@ -21,5 +23,6 @@ class PmFormRepository @Inject constructor(val api:SipentasAPI)  {
     suspend fun getKelurahan(id:Int):List<KelurahanModel> = api.getKelurahan(id)
 
     suspend fun insertPhoto(foto:MultipartBody.Part):UploadResponse = api.uploadPhoto(foto)
-    suspend fun addPm(body:PostPmModel) = api.addPm(body)
+    suspend fun addPm(body:PostPmModel):AddPmResponse = api.addPm(body)
+    suspend fun updatePm(id:Int,body:PmUpdateBody) = api.updatePm(id,body)
 }

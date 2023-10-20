@@ -1,6 +1,7 @@
 package com.example.sipentas.models
 
 data class PmModel(
+    val id:String? = null,
     val name:String? = null,
     val nama_provinsi:String? = null,
     val nama_kabupaten:String? = null,
@@ -21,5 +22,8 @@ data class PmModel(
     val id_kelurahan:String? = null,
     val nama_kelurahan:String? = null,
     val nama_jalan:String? = null,
+    val id_agama:String? = null,
+    val id_ragam:String? = null,
     val foto_diri:String? = null
+
 )

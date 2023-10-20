@@ -14,7 +14,6 @@ data class PostPmModel(
     val provinsi_id:Int,
     val kabupaten_id:Int,
     val nama_jalan:String,
-    val flag:Int,
     val kecamatan_id:Int,
     val kelurahan_id:Long,
     val satker_id:Int,

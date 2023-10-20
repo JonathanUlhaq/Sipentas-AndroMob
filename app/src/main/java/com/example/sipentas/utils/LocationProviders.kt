@@ -54,12 +54,12 @@ class LocationProviders(private val context: Context) {
             onResult ={
                     boolean ->
                 if (boolean) {
-                    Toast.makeText(context,"Akses lokasi diizinkan", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context,"Akses lokasi diizinkan", Toast.LENGTH_SHORT).show()
                     coroutine.launch {
 
                     }
                 } else {
-                    Toast.makeText(context,"Akses lokasi tidak diizinkan", Toast.LENGTH_SHORT).show()
+//                    Toast.makeText(context,"Akses lokasi tidak diizinkan", Toast.LENGTH_SHORT).show()
                 }
             } )
 

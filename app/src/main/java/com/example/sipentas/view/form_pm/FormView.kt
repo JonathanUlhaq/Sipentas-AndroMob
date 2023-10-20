@@ -65,6 +65,7 @@ import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.widgets.DatePicker
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.default
@@ -99,7 +100,8 @@ fun compressImage(file: File, context: Context): File {
 @Composable
 fun FormView(
     navController: NavController,
-    vm:FormPmViewModel
+    vm:FormPmViewModel,
+    asVm:AssesmenViewModel
 ) {
 
     vm.getProvinsi()
@@ -188,7 +190,7 @@ fun FormView(
     if (locationPermission.value) {
         location.LocationPermission(lat = lat, long = long)
     }
-    val dropCompose = DropdownCompose(vm)
+    val dropCompose = DropdownCompose(vm,asVm)
 
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()

@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,11 +45,16 @@ import com.example.sipentas.navigation.AppRoute
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AssessmentView(navController: NavController) {
+fun AssessmentView(
+    navController: NavController,
+    vm: AssesmenViewModel
+) {
     val search = remember {
         mutableStateOf("")
     }
 
+    vm.getAssesmen()
+    val uiState = vm.uiState.collectAsState().value
     val nama = listOf(
         "Arya",
         "Anya",
@@ -79,93 +85,127 @@ fun AssessmentView(navController: NavController) {
                 HeaderList(search, "Assessment")
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(16.dp),
-                        content = {
-                            itemsIndexed(nama) { index, item ->
+                    if (uiState.rows != null) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(16.dp),
+                            content = {
+                                itemsIndexed(uiState.rows) { index, item ->
 
-                                val changeColor by animateColorAsState(
-                                    targetValue = if (status[index] == "Belum Ditangani") Color(
-                                        0xFFD0D34B
+                                    val changeColor by animateColorAsState(
+                                        targetValue = if (item.flag == 0) Color(
+                                            0xFFD0D34B
+                                        )
+                                        else if (item.flag == 1) Color(0xFF4BD379)
+                                        else Color(0xFFD34B4B)
                                     )
-                                    else if (status[index] == "Sudah Ditangani") Color(0xFF4BD379)
-                                    else Color(0xFFD34B4B)
-                                )
-                                val changeIcon by animateIntAsState(
-                                    targetValue = if (status[index] == "Belum Ditangani")
-                                        R.drawable.process_icon else if (status[index] == "Sudah Ditangani")
-                                        R.drawable.check_icon
-                                    else R.drawable.close_icon
-                                )
+                                    val changeIcon by animateIntAsState(
+                                        targetValue = if (item.flag == 0)
+                                            R.drawable.process_icon else if (item.flag == 1)
+                                            R.drawable.check_icon
+                                        else R.drawable.close_icon
+                                    )
 
 
-                                Surface(
-                                    color = Color(0xFFF8F8F8),
-                                    shape = RoundedCornerShape(6.dp),
-                                    modifier = Modifier
-                                        .clickable {
-                                            if (status[index] == "Belum Ditangani") {
-                                                navController.navigate(AppRoute.FormAssessment.route)
-                                            } else if (status[index] == "Sudah Ditangani") {
-                                                navController.navigate(AppRoute.DetailAssessment.route)
+                                    Surface(
+                                        color = Color(0xFFF8F8F8),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier
+                                            .clickable {
+                                                if (item.flag == 0) {
+                                                    navController.navigate(AppRoute.FormAssessment.route + "/${item.id_pm}")
+                                                } else if (item.flag == 1) {
+                                                    navController.navigate(
+                                                        AppRoute.DetailAssessment.route
+                                                                +"/${item.nama_pendidikan}"
+                                                                +"/${item.id_pendidikan}"
+                                                                +"/${item.nama_sumber_kasus}"
+                                                                +"/${item.id_sumber_kasus}"
+                                                                +"/${item.nama_pekerjaan}"
+                                                                +"/${item.id_pekerjaan}"
+                                                                +"/${if (!item.tanggal.isNullOrEmpty()) item.tanggal else "kosong"}"
+                                                                +"/${if (!item.petugas.isNullOrEmpty()) item.petugas else "kosong"}"
+                                                                +"/${if (!item.status_dtks.isNullOrEmpty()) item.status_dtks else "kosong"}"
+                                                                +"/${item.nama_status_ortu}"
+                                                                +"/${item.id_status_ortu}"
+                                                                +"/${item.nama_pekerjaan}"
+                                                                +"/${item.id_kerja_ortu}"
+                                                                +"/${item.nama_tempat_tinggal}"
+                                                                +"/${item.id_tempat_tinggal}"
+                                                                +"/${if (!item.nama_bpk.isNullOrEmpty()) item.nama_bpk else "kosong"}"
+                                                                +"/${if (!item.nama_ibu.isNullOrEmpty()) item.nama_ibu else "kosong"}"
+                                                                +"/${if (!item.nik_pm.isNullOrEmpty()) item.nik_pm else "0"}"
+                                                                +"/${if (!item.nama_wali.isNullOrEmpty()) item.nama_wali else "kosong"}"
+                                                                +"/${if (!item.penghasilan.isNullOrEmpty()) item.penghasilan else "kosong"}"
+                                                                +"/${if (!item.catatan.isNullOrEmpty()) item.catatan else "kosong"}"
+                                                                + "?urlRumah=${if (!item.foto_rumah.isNullOrEmpty()) item.foto_rumah else "0"}"
+                                                                + "?urlFisik=${if (!item.foto_kondisi_fisik.isNullOrEmpty()) item.foto_kondisi_fisik else "0"}"
+                                                                +"?urlKk=${if (!item.foto_kk.isNullOrEmpty()) item.foto_kk else "0"}"
+                                                                +"?urlKtp=${if (!item.foto_ktp.isNullOrEmpty()) item.foto_ktp else "0"}"
+
+                                                    )
+                                                }
                                             }
-                                        }
-                                ) {
-                                    Row(
-                                        Modifier
-                                            .padding(start = 12.dp)
-                                            .fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Column {
-                                            Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontSize = 12.sp,
-                                                color = Color(0xFF515151)
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = status[index],
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontSize = 10.sp,
-                                                color = Color(0xFFC3C3C3)
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = tanggal[index],
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontSize = 10.sp,
-                                                color = Color(0xFFC3C3C3)
-                                            )
-                                        }
-                                        Surface(
-                                            shape = RoundedCornerShape(4.dp),
-                                            modifier = Modifier
-                                                .size(width = 50.dp, height = 60.dp),
-                                            color = changeColor
+                                        Row(
+                                            Modifier
+                                                .padding(start = 12.dp)
+                                                .fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .wrapContentSize(Alignment.Center)
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(id = changeIcon),
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.background,
-                                                    modifier = Modifier
-                                                        .size(14.dp)
+                                            Column {
+                                                Text(
+                                                    text = item.nama_pm!!,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFF515151)
                                                 )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = when (item.flag) {
+                                                        0 -> "Belum Diproses"
+                                                        1 -> "Sudah Diproses"
+                                                        else -> "Closed"
+                                                    },
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontSize = 10.sp,
+                                                    color = Color(0xFFC3C3C3)
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = if (item.tanggal.isNullOrEmpty()) " " else item.tanggal,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontSize = 10.sp,
+                                                    color = Color(0xFFC3C3C3)
+                                                )
+                                            }
+                                            Surface(
+                                                shape = RoundedCornerShape(4.dp),
+                                                modifier = Modifier
+                                                    .size(width = 50.dp, height = 60.dp),
+                                                color = changeColor
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .wrapContentSize(Alignment.Center)
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = changeIcon),
+                                                        contentDescription = null,
+                                                        tint = MaterialTheme.colorScheme.background,
+                                                        modifier = Modifier
+                                                            .size(14.dp)
+                                                    )
+                                                }
                                             }
                                         }
                                     }
+                                    Spacer(modifier = Modifier.height(14.dp))
                                 }
-                                Spacer(modifier = Modifier.height(14.dp))
-                            }
-                        })
+                            })
+                    }
                 }
             }
         }

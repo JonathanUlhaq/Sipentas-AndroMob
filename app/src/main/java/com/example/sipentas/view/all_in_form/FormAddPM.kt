@@ -45,9 +45,11 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.models.AddPmResponse
 import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
+import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.form_pm.FormPmViewModel
 import com.example.sipentas.widgets.DatePicker
 import id.zelory.compressor.Compressor
@@ -64,7 +66,10 @@ fun FormAddPm(
     showPermission: MutableState<Boolean>,
     capturedImagebyUri: MutableState<Uri?>,
     vm: FormPmViewModel,
-    onAction: () -> Unit
+    asVm:AssesmenViewModel,
+    lat:MutableState<String>,
+    long:MutableState<String>,
+    onAction: (AddPmResponse) -> Unit
 
 ) {
 
@@ -113,12 +118,7 @@ fun FormAddPm(
         mutableStateOf(false)
     }
 
-    val lat = remember {
-        mutableStateOf("")
-    }
-    val long = remember {
-        mutableStateOf("")
-    }
+
     val ragamString = remember {
         mutableStateOf("")
     }
@@ -141,7 +141,7 @@ fun FormAddPm(
 
     val location = LocationProviders(context)
 
-    val dropCompose = DropdownCompose(vm)
+    val dropCompose = DropdownCompose(vm,asVm)
 
     val scrollState = rememberScrollState()
     val keteranganPPks = remember {
@@ -205,53 +205,49 @@ fun FormAddPm(
             }) {
 
             }
-            onAction.invoke()
-//            if (capturedImagebyUri.value?.path != null && !formWajib.value) {
-//                runBlocking {
-//                    val file = File(capturedImagebyUri.value?.path!!)
-//                    val compressor = Compressor.compress(context, file) {
-//                        default()
-//                        destination(file)
-//                    }
-//                    Log.d("EXIST", (compressor.length() / 1024).toString())
-//                    Log.d("UKURAN", compressor.name)
-//                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-//                    val gambar = MultipartBody.Part.createFormData(
-//                        "file",
-//                        compressor.name,
-//                        requestBody
-//                    )
-//
-//                    vm.postPhoto(gambar, onError = {locationPermission.value = false}) {
-//                        vm.addPm(
-//                            PostPmModel(
-//                                name = nama.value,
-//                                date_of_birth = tanggalLahir.value,
-//                                flag = 1,
-//                                foto_diri = it.file_url!!,
-//                                gender = kelaminString.value,
-//                                kabupaten_id = kabupatenId.intValue,
-//                                kecamatan_id = kecamatanId.intValue,
-//                                kelurahan_id = kelurahanId.longValue,
-//                                ket_ppks = keteranganPPks.value,
-//                                kluster_id = kategoriPpksInt.intValue,
-//                                kode_pos = "57716",
-//                                nama_jalan = namaJalan.value,
-//                                nik = nik.value,
-//                                phone_number = nomorHandphone.value,
-//                                place_of_birth = tempatLahir.value,
-//                                provinsi_id = provinsiInt.intValue,
-//                                ragam_id = ragamId.intValue,
-//                                religion = agamaId.intValue,
-//                                satker_id = 9
-//                            )
-//                            , onError = {locationPermission.value = false}) {
-//                            onAction.invoke()
-//                        }
-//
-//                    }
-//                }
-//            }
+            if (capturedImagebyUri.value?.path != null && !formWajib.value) {
+                runBlocking {
+                    val file = File(capturedImagebyUri.value?.path!!)
+                    val compressor = Compressor.compress(context, file) {
+                        default()
+                        destination(file)
+                    }
+                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                    val gambar = MultipartBody.Part.createFormData(
+                        "file",
+                        compressor.name,
+                        requestBody
+                    )
+
+                    vm.postPhoto(gambar, onError = {locationPermission.value = false}) {
+                        vm.addPm(
+                            PostPmModel(
+                                name = nama.value,
+                                date_of_birth = tanggalLahir.value,
+                                foto_diri = it.file_url!!,
+                                gender = kelaminString.value,
+                                kabupaten_id = kabupatenId.intValue,
+                                kecamatan_id = kecamatanId.intValue,
+                                kelurahan_id = kelurahanId.longValue,
+                                ket_ppks = keteranganPPks.value,
+                                kluster_id = kategoriPpksInt.intValue,
+                                kode_pos = "57716",
+                                nama_jalan = namaJalan.value,
+                                nik = nik.value,
+                                phone_number = nomorHandphone.value,
+                                place_of_birth = tempatLahir.value,
+                                provinsi_id = provinsiInt.intValue,
+                                ragam_id = ragamId.intValue,
+                                religion = agamaId.intValue,
+                                satker_id = 9
+                            )
+                            , onError = {locationPermission.value = false}) {
+                            onAction.invoke( it)
+                        }
+
+                    }
+                }
+            }
         }
     }
 

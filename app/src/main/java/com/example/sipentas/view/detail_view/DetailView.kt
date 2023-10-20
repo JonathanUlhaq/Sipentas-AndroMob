@@ -1,6 +1,7 @@
 package com.example.sipentas.view.detail_view
 
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -53,14 +54,23 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.models.PmUpdateBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.form_pm.FormPmViewModel
 import com.example.sipentas.widgets.DatePicker
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.default
+import id.zelory.compressor.constraint.destination
+import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -88,11 +98,19 @@ fun DetailView(
     currentJalan: String,
     currentKabupId:String,
     currentKecId:String,
-    fotoDiri:String
+    fotoDiri:String,
+    asVm:AssesmenViewModel,
+    id_pm:String,
+    currentAgamaId:String,
+    currentRagamId:String,
+    currentKelurahanId:String
 ) {
 
     vm.getProvinsi()
     vm.getKategori()
+    val urlFoto = remember {
+        mutableStateOf(fotoDiri)
+    }
     val nama = remember {
         mutableStateOf(currentName)
     }
@@ -175,7 +193,7 @@ fun DetailView(
     val cameraExecutor = Executors.newSingleThreadExecutor()
     val scrollState = rememberScrollState()
 
-    val dropCompose = DropdownCompose(vm)
+    val dropCompose = DropdownCompose(vm,asVm)
 
     val kategoriPpksInt = remember {
         mutableIntStateOf(currentIdKluster.toInt())
@@ -227,7 +245,13 @@ fun DetailView(
         mutableStateOf(false)
     }
     val kelurahanId = remember {
-        mutableLongStateOf(0)
+        mutableLongStateOf(currentKelurahanId.toLong())
+    }
+    val ragamId = remember {
+        mutableIntStateOf(currentRagamId.toInt())
+    }
+    val agamaId = remember {
+        mutableIntStateOf(currentAgamaId.toInt())
     }
 
     vm.getKelurahan(kecamatanId.intValue)
@@ -252,6 +276,22 @@ fun DetailView(
                 capturedImagebyUri.value = uri
                 showPermission.value = false
                 openCamera.value = false
+                runBlocking {
+                    val file = File(capturedImagebyUri.value?.path!!)
+                    val compressor = Compressor.compress(context, file) {
+                        default()
+                        destination(file)
+                    }
+                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                    val gambar = MultipartBody.Part.createFormData(
+                        "file",
+                        compressor.name,
+                        requestBody
+                    )
+                    vm.postPhoto(gambar, onError = {}) {
+                        urlFoto.value = it.file_url!!
+                    }
+                }
                 cameraExecutor.shutdown()
             },
             onError = {
@@ -335,9 +375,9 @@ fun DetailView(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable {
-                                   if (isEdit.value) {
-                                       showPermission.value = true
-                                   }
+                                    if (isEdit.value) {
+                                        showPermission.value = true
+                                    }
                                 }
                                 .wrapContentSize(Alignment.Center)
 
@@ -419,6 +459,7 @@ fun DetailView(
                         AnimatedVisibility(visible = isEdit.value) {
                             dropCompose.DropDownRagam(expand = ragam) { string, index ->
                                 ragamString.value = string
+                                ragamId.intValue = index
                             }
                         }
                     }
@@ -475,6 +516,17 @@ fun DetailView(
                         modifier = Modifier
                             .fillMaxWidth()
                     )
+                    AnimatedVisibility(visible = nik.value.length != 16) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* NIK harus diisi 16 digit",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
+
+                    }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
                         textString = tempatLahir,
@@ -527,6 +579,7 @@ fun DetailView(
                                 AnimatedVisibility(visible = isEdit.value) {
                                     dropCompose.DropDownAgama(expand = agama) { string, index ->
                                         agamaString.value = string
+                                        agamaId.intValue = index
                                     }
                                 }
                             }
@@ -650,7 +703,32 @@ fun DetailView(
 
                                 }
                             }) {
+                                vm.updatePm(id = id_pm.toInt(), body = PmUpdateBody(
+                                    date_of_birth = tanggalLahir.value,
+                                    flag = 0,
+                                    foto_diri = urlFoto.value,
+                                    gender = kelaminString.value,
+                                    kabupaten_id = kabupatenId.value,
+                                    kecamatan_id = kecamatanId.value,
+                                    kelurahan_id = kelurahanId.value,
+                                    ket_ppks = keteranganPPks.value,
+                                    kluster_id = kategoriPpksInt.value,
+                                    kode_pos = "5778",
+                                    nama_jalan = namaJalan.value,
+                                    name = nama.value,
+                                    nik = nik.value,
+                                    phone_number = nomorHandphone.value,
+                                    place_of_birth = tempatLahir.value,
+                                    provinsi_id = provinsiInt.value,
+                                    ragam_id = ragamId.intValue,
+                                    religion = agamaId.value,
+                                    satker_id = 9
+                                ), onError = {
 
+                                } ) {
+                                        Toast.makeText(context,"Data berhasil diubah",Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                }
                             }
                         }
                     }

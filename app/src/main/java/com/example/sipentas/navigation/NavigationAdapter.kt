@@ -12,11 +12,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.example.sipentas.view.all_in_form.AllInFormView
+import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.assessment.AssessmentView
 import com.example.sipentas.view.atensi.Atensi
 import com.example.sipentas.view.change_password.ChangePasswordView
 import com.example.sipentas.view.detail_assessment.DetailAssessmentView
 import com.example.sipentas.view.detail_atensi.DetailAtens
+import com.example.sipentas.view.detail_atensi.DetailAtensiViewModel
 import com.example.sipentas.view.detail_view.DetailView
 import com.example.sipentas.view.form_assessment.FormAssessment
 import com.example.sipentas.view.form_pm.FormPmViewModel
@@ -35,6 +37,8 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
     val listViewModel = hiltViewModel<ListPmViewModel>()
     val formPmViewModel = hiltViewModel<FormPmViewModel>()
     val profileViewModel = hiltViewModel<ProfileViewModel>()
+    val assesmenViewModel = hiltViewModel<AssesmenViewModel>()
+    val detailAtensiVm = hiltViewModel<DetailAtensiViewModel>()
 
     NavHost(
         navController = navController,
@@ -49,7 +53,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         composable(AppRoute.Form.route) {
             showBottomBar.value = false
 //            FormView(navController, formPmViewModel)
-            AllInFormView(navController = navController, formPmViewModel)
+            AllInFormView(navController = navController, formPmViewModel, assesmenViewModel,detailAtensiVm)
         }
 
         composable(BotNavRoute.PenerimaManfaat.route) {
@@ -58,7 +62,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         }
         composable(BotNavRoute.Assessment.route) {
             showBottomBar.value = true
-            AssessmentView(navController = navController)
+            AssessmentView(navController = navController, assesmenViewModel)
         }
 
         composable(BotNavRoute.Atensi.route) {
@@ -71,7 +75,12 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
         }
 
         composable(
-            AppRoute.DetailPm.route + "/{ragam}/" +
+            AppRoute.DetailPm.route
+                    + "/{ragam}/" +
+                    "{kelurahanId}/" +
+                    "{id}/" +
+                    "{agamaId}/" +
+                    "{ragamId}/" +
                     "{nama}/" +
                     "{kelamin}/" +
                     "{agama}/" +
@@ -80,16 +89,16 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                     "{kluster}/" +
                     "{id_kluster}/" +
                     "{id_provinsi}/" +
-                    "{ket_ppks}/"+
-                    "{tempat_lahir}/"+
-                    "{tanggal_lahir}/"+
-                    "{phone}/"+
-                    "{nik}/"+
-                    "{kelurahan}/"+
-                    "{kec_id}/"+
-                    "{kecamatan}/"+
-                    "{kab_id}/"+
-                    "{jalan}?"+
+                    "{ket_ppks}/" +
+                    "{tempat_lahir}/" +
+                    "{tanggal_lahir}/" +
+                    "{phone}/" +
+                    "{nik}/" +
+                    "{kelurahan}/" +
+                    "{kec_id}/" +
+                    "{kecamatan}/" +
+                    "{kab_id}/" +
+                    "{jalan}?" +
                     "foto_diri={foto_diri}",
             arguments = listOf(
                 navArgument("nama") {
@@ -100,8 +109,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 },
                 navArgument("tempat_lahir") {
                     defaultValue = "empty"
-                }
-                ,
+                },
                 navArgument("tanggal_lahir") {
                     defaultValue = "empty"
                 },
@@ -151,18 +159,28 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 currentKecamatan = it.arguments?.getString("kecamatan")!!,
                 currentKabupId = it.arguments?.getString("kab_id")!!,
                 currentJalan = it.arguments?.getString("jalan")!!,
-                fotoDiri = it.arguments?.getString("foto_diri")!!
+                fotoDiri = it.arguments?.getString("foto_diri")!!,
+                asVm = assesmenViewModel,
+                id_pm = it.arguments?.getString("id")!!,
+                currentAgamaId = it.arguments?.getString("agamaId")!!,
+                currentRagamId = it.arguments?.getString("ragamId")!!,
+                currentKelurahanId = it.arguments?.getString("kelurahanId")!!
             )
         }
 
-        composable(AppRoute.FormAssessment.route) {
+        composable(AppRoute.FormAssessment.route + "/{id}") {
             showBottomBar.value = false
-            FormAssessment(navController = navController)
+            FormAssessment(
+                navController = navController,
+                asVm = assesmenViewModel,
+                vm = formPmViewModel,
+                idUser = it.arguments?.getString("id")!!
+            )
         }
 
         composable(AppRoute.DetailAtensi.route) {
             showBottomBar.value = false
-            DetailAtens(navController = navController)
+            DetailAtens(navController = navController,detailAtensiVm)
         }
 
         composable(AppRoute.UpdatePassword.route) {
@@ -170,9 +188,65 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
             ChangePasswordView(navController = navController)
         }
 
-        composable(AppRoute.DetailAssessment.route) {
+        composable(
+            AppRoute.DetailAssessment.route
+                    + "/{pendidikan}"
+                    + "/{pendidikanId}"
+                    + "/{sumber}"
+                    + "/{sumberId}"
+                    + "/{pekerjaan}"
+                    + "/{pekerjaanId}"
+                    + "/{tanggal}"
+                    + "/{petugas}"
+                    + "/{dtks}"
+                    + "/{status}"
+                    + "/{statusId}"
+                    + "/{pekerjaanOrtu}"
+                    + "/{pekerjaanOrtuId}"
+                    + "/{tempatTinggal}"
+                    + "/{tempatTinggalId}"
+                    + "/{namaBapak}"
+                    + "/{namaIbu}"
+                    + "/{nikIbu}"
+                    + "/{namaWali}"
+                    + "/{penghasilan}"
+                    + "/{catatan}?"
+                    + "urlRumah={urlRumah}?"
+                    + "urlFisik={urlFisik}?"
+                    + "urlKk={urlKk}?"
+                    + "urlKtp={urlKtp}"
+        ) {
             showBottomBar.value = false
-            DetailAssessmentView(navController = navController)
+            DetailAssessmentView(
+                navController = navController,
+                assesmenViewModel,
+                formPmViewModel,
+                urlRumah = it.arguments?.getString("urlRumah")!!,
+                urlFisik = it.arguments?.getString("urlFisik")!!,
+                urlKk = it.arguments?.getString("urlKk")!!,
+                urlKtp = it.arguments?.getString("urlKtp")!!,
+                curPendidikan = it.arguments?.getString("pendidikan")!!,
+                curPendidikanId = it.arguments?.getString("pendidikanId")!!,
+                curSumber = it.arguments?.getString("sumber")!!,
+                curSumberId = it.arguments?.getString("sumberId")!!,
+                curPekerjaan = it.arguments?.getString("pekerjaan")!!,
+                curPekerjaanId = it.arguments?.getString("pekerjaanId")!!,
+                curTanggal = it.arguments?.getString("tanggal")!!,
+                curPetugas = it.arguments?.getString("petugas")!!,
+                curDtks = it.arguments?.getString("dtks")!!,
+                curStatusOrtu = it.arguments?.getString("status")!!,
+                curStatusOrtuId = it.arguments?.getString("statusId")!!,
+                curPekerOrtu = it.arguments?.getString("pekerjaanOrtu")!!,
+                curPekerOrtuId =it.arguments?.getString("pekerjaanOrtuId")!! ,
+                curTempatTinggal = it.arguments?.getString("tempatTinggal")!!,
+                curTempatTinggalId = it.arguments?.getString("tempatTinggalId")!!,
+                curNamaBapak = it.arguments?.getString("namaBapak")!!,
+                curNamaIbu = it.arguments?.getString("namaIbu")!!,
+                curNikIbu = it.arguments?.getString("nikIbu")!!,
+                curNamaWali = it.arguments?.getString("namaWali")!!,
+                curPenghasilan = it.arguments?.getString("penghasilan")!!,
+                curCatatan = it.arguments?.getString("catatan")!!
+            )
         }
 
     }

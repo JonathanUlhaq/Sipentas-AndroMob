@@ -150,6 +150,10 @@ private fun ListPmItem(
                 navController.navigate(
                     AppRoute.DetailPm.route
                             + "/${item.nama_ragam}"
+                            + "/${item.id_kelurahan}"
+                            + "/${item.id}"
+                            + "/${item.id_agama}"
+                            + "/${item.id_ragam}"
                             + "/${item.name}"
                             + "/${item.gender}"
                             + "/${item.agama}"

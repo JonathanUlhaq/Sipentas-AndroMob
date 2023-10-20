@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,15 +48,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
+import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
+import com.example.sipentas.view.assessment.AssesmenViewModel
+import com.example.sipentas.view.form_pm.FormPmViewModel
 import com.example.sipentas.widgets.DatePicker
 import java.io.File
 import java.util.concurrent.Executors
@@ -62,9 +69,16 @@ import java.util.concurrent.Executors
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormAssessment(
-    navController: NavController
+    navController: NavController,
+    vm:FormPmViewModel,
+    asVm:AssesmenViewModel,
+    idUser:String
 ) {
-
+    asVm.getPendidikan()
+    asVm.getSumber()
+    asVm.getPekerjaan()
+    asVm.getStatusOrtu()
+    asVm.getTempatTinggal()
     val scrollState = rememberScrollState()
     val pendidikan = remember {
         mutableStateOf(false)
@@ -217,7 +231,58 @@ fun FormAssessment(
         mutableStateOf("")
     }
 
+    val formWajib = remember {
+        mutableStateOf(false)
+    }
+    val pendidikanInt = remember {
+        mutableIntStateOf(0)
+    }
+    val sumberInt = remember {
+        mutableIntStateOf(0)
+    }
+    val pekerjaanInt = remember {
+        mutableIntStateOf(0)
+    }
+    val statusInt = remember {
+        mutableIntStateOf(0)
+    }
+    val pekerjaanOrtuInt = remember {
+        mutableIntStateOf(0)
+    }
+    val tempatTinggalInt = remember {
+        mutableIntStateOf(0)
+    }
+    val urlFisik = remember {
+        mutableStateOf("")
+    }
+    val urlKk = remember {
+        mutableStateOf("")
+    }
+    val urlKtp = remember {
+        mutableStateOf("")
+    }
+    val urlRumah = remember {
+        mutableStateOf("")
+    }
 
+    val idUser = remember {
+        mutableStateOf(idUser)
+    }
+    val lat = remember {
+        mutableStateOf("")
+    }
+    val long = remember {
+        mutableStateOf("")
+    }
+
+    formWajib.value = pendidikanString.value.isEmpty()
+            || sumberString.value.isEmpty()
+            || pekerjaanString.value.isEmpty()
+            || statusOrtuString.value.isEmpty()
+            || pekerjaanOrtuString.value.isEmpty()
+            || tempatTinggalString.value.isEmpty()
+
+    val dropDownCompose = DropdownCompose(vm, asVm)
 
     if (showPermissionKtp.value) {
         RequestCameraPermission(
@@ -347,6 +412,36 @@ fun FormAssessment(
                         .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .verticalScroll(scrollState)
                 ) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                    ) {
+                        FotoBox(
+                            showPermissionRumah, capturedImagebyUriRumah, Modifier
+                                .fillMaxWidth(0.5f), "Rumah"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        FotoBox(
+                            showPermissionFisik, capturedImagebyUriFisik, Modifier
+                                .fillMaxWidth(), "Kondisi Fisik"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                    ) {
+                        FotoBox(
+                            showPermissionKk, capturedImagebyUriKk, Modifier
+                                .fillMaxWidth(0.5f), "KK"
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        FotoBox(
+                            showPermissionKtp, capturedImagebyUriKtp, Modifier
+                                .fillMaxWidth(), "KTP"
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
 //                Pendidikan dan Sumber Kasus
                     Row(
                         Modifier
@@ -358,8 +453,9 @@ fun FormAssessment(
                             "Pendidikan",
                             pendidikanString.value
                         ) {
-                            DropDownDummy(expand = pendidikan) {
-                                pendidikanString.value = it
+                            dropDownCompose.DropDownPendidikan(expand = pendidikan) { item, id ->
+                                pendidikanString.value = item
+                                pendidikanInt.intValue = id
                             }
                         }
                         Spacer(modifier = Modifier.width(4.dp))
@@ -369,9 +465,20 @@ fun FormAssessment(
                             "Sumber Kasus",
                             sumberString.value
                         ) {
-                            DropDownDummy(expand = sumber) {
-                                sumberString.value = it
+                            dropDownCompose.DropDownSumberKasus(expand = sumber) { item, id ->
+                                sumberString.value = item
+                                sumberInt.intValue = id
                             }
+                        }
+                    }
+                    AnimatedVisibility(visible = pendidikanString.value.isEmpty() || sumberString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Pendidikan dan Sumber Kasus wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
@@ -381,24 +488,24 @@ fun FormAssessment(
                     ) {
                         DropdownField(
                             pekerjaan,
-                            modifier = Modifier.fillMaxWidth(0.5f),
+                            modifier = Modifier.fillMaxWidth(),
                             "Pekerjaan",
                             pekerjaanString.value
                         ) {
-                            DropDownDummy(expand = pekerjaan) {
-                                pekerjaanString.value = it
+                            dropDownCompose.DropDownPekerjaan(expand = pekerjaan) { item, id ->
+                                pekerjaanString.value = item
+                                pekerjaanInt.intValue = id
                             }
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        DropdownField(
-                            lembaga,
-                            modifier = Modifier.fillMaxWidth(),
-                            "Lembaga",
-                            lembagaString.value
-                        ) {
-                            DropDownDummy(expand = lembaga) {
-                                lembagaString.value = it
-                            }
+                    }
+                    AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Pekerjaan wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
@@ -412,6 +519,7 @@ fun FormAssessment(
                         modifier = Modifier
                             .fillMaxWidth()
                     )
+
                     Spacer(modifier = Modifier.height(14.dp))
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
@@ -429,8 +537,19 @@ fun FormAssessment(
                         "Status Orang Tua",
                         statusOrtuString.value
                     ) {
-                        DropDownDummy(expand = statusOrtu) {
-                            statusOrtuString.value = it
+                        dropDownCompose.DropDownStatusOrtu(expand = statusOrtu) { item, id ->
+                            statusOrtuString.value = item
+                            statusInt.intValue = id
+                        }
+                    }
+                    AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Status Orang Tua wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
@@ -444,8 +563,9 @@ fun FormAssessment(
                             "Pekerjaan Orang Tua",
                             pekerjaanOrtuString.value
                         ) {
-                            DropDownDummy(expand = pekerjaanOrtu) {
-                                pekerjaanOrtuString.value = it
+                            dropDownCompose.DropDownPekerjaan(expand = pekerjaanOrtu) { item, id ->
+                                pekerjaanOrtuString.value = item
+                                pekerjaanOrtuInt.intValue = id
                             }
                         }
                         Spacer(modifier = Modifier.width(4.dp))
@@ -455,9 +575,20 @@ fun FormAssessment(
                             "Tempat Tinggal",
                             tempatTinggalString.value
                         ) {
-                            DropDownDummy(expand = tempatTinggal) {
-                                tempatTinggalString.value = it
+                            dropDownCompose.DropDownTempatTinggal(expand = tempatTinggal) { item, id ->
+                                tempatTinggalString.value = item
+                                tempatTinggalInt.intValue = id
                             }
+                        }
+                    }
+                    AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
                         }
                     }
                     Spacer(modifier = Modifier.height(14.dp))
@@ -516,36 +647,7 @@ fun FormAssessment(
                             .fillMaxWidth()
                     )
 //                    Foto
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        FotoBox(
-                            showPermissionRumah, capturedImagebyUriRumah, Modifier
-                                .fillMaxWidth(0.5f), "Rumah"
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        FotoBox(
-                            showPermissionFisik, capturedImagebyUriFisik, Modifier
-                                .fillMaxWidth(), "Kondisi Fisik"
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        FotoBox(
-                            showPermissionKk, capturedImagebyUriKk, Modifier
-                                .fillMaxWidth(0.5f), "KK"
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        FotoBox(
-                            showPermissionKtp, capturedImagebyUriKtp, Modifier
-                                .fillMaxWidth(), "KTP"
-                        )
-                    }
+
                     Spacer(modifier = Modifier.height(14.dp))
                     PickPdfFile(urri = pdfUri, onPdfPicked = { uri ->
                         pdfUri.value = uri
@@ -573,6 +675,41 @@ fun FormAssessment(
                         }
                     }) {
 
+                        if (!formWajib.value
+                            && urlKk.value.isNotEmpty()
+                            && urlRumah.value.isNotEmpty()
+                            && urlFisik.value.isNotEmpty()
+                            && urlKtp.value.isNotEmpty()
+                        ) {
+                            asVm.addAssesmen(
+                                AssesmentBody(
+                                    catatan = catatan.value,
+                                    foto_kk = urlKk.value,
+                                    foto_kondisi_fisik = urlFisik.value,
+                                    foto_ktp = urlKtp.value,
+                                    foto_rumah = urlRumah.value,
+                                    id_kerja_ortu = pekerjaanOrtuInt.intValue,
+                                    id_lembaga = 1,
+                                    id_pekerjaan = pekerjaanInt.intValue,
+                                    id_pendidikan = pendidikanInt.intValue,
+                                    id_pm = idUser.value.toInt(),
+                                    id_status_ortu = statusInt.intValue,
+                                    id_sumber_kasus = sumberInt.intValue,
+                                    id_tempat_tgl = tempatTinggalInt.intValue,
+                                    lat = lat.value,
+                                    long = long.value,
+                                    nama_bpk = namaBapak.value,
+                                    nama_ibu = namaIbu.value,
+                                    nama_wali = namaWali.value,
+                                    nik_ibu = nikIbu.value,
+                                    petugas = petugas.value,
+                                    status_dtks = "status_dtks",
+                                    tanggal = tanggalLahir.value,
+                                    flag = 0
+                                )
+                            ) {}
+
+                        }
                     }
                 }
             }
@@ -671,7 +808,8 @@ fun FotoBox(
     showPermissionRumah: MutableState<Boolean>,
     capturedImagebyUriRumah: MutableState<Uri>,
     modifier: Modifier = Modifier,
-    label: String
+    label: String,
+    url:String = "0"
 ) {
     Surface(
         modifier
@@ -696,6 +834,12 @@ fun FotoBox(
                     modifier = Modifier
                         .fillMaxSize()
                 )
+            } else if (url != "0") {
+                AsyncImage(model = url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize())
             } else {
                 Column(
                     Modifier

@@ -43,6 +43,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,20 +53,28 @@ import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
+import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.component.OutlineButtonPrimary
 import com.example.sipentas.utils.CameraView
+import com.example.sipentas.utils.DropDownAtensi
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.form_assessment.PickPdfFile
+import com.example.sipentas.widgets.DatePicker
 import java.io.File
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailAtens(
-    navController: NavController
+    navController: NavController,
+    vm:DetailAtensiViewModel
 ) {
+
+    vm.getJenisAtensi()
+    vm.getPendekatanAtensi()
+
     val atensi = listOf(
         "Perawatan Keluarga"
     )
@@ -97,9 +107,20 @@ fun DetailAtens(
     val capturedImagebyUri = remember {
         mutableStateOf(Uri.EMPTY)
     }
-
+    val jenis = remember {
+        mutableStateOf("")
+    }
+    val nilai = remember {
+        mutableStateOf("")
+    }
+    val tanggalAtensi = remember {
+        mutableStateOf("")
+    }
+    val penerima = remember {
+        mutableStateOf("")
+    }
     val context = LocalContext.current
-
+    val dropDownAtensi = DropDownAtensi(vm)
     if (showPermission.value) {
         RequestCameraPermission(
             context = context,
@@ -323,28 +344,6 @@ fun DetailAtens(
                                 }
                                 AnimatedVisibility(visible = addForm.value) {
                                     Column {
-                                        DropdownField(kategoriPpks = jenisAtens ,
-                                            label = "Jenis Atensi" ,
-                                            stringText = jenisAtensString.value,
-                                            modifier = Modifier
-                                                .fillMaxWidth()) {
-                                            DropDownDummy(expand = jenisAtens,
-                                                getString = {
-                                                    jenisAtensString.value = it
-                                                } )
-                                        }
-                                        Spacer(modifier = Modifier.height(14.dp))
-                                        DropdownField(kategoriPpks = pendekatanAtens ,
-                                            label = "Pendekatan Atensi" ,
-                                            stringText = pendekatanAtensString.value,
-                                            modifier = Modifier
-                                                .fillMaxWidth() ) {
-                                            DropDownDummy(expand = pendekatanAtens,
-                                                getString = {
-                                                    pendekatanAtensString.value = it
-                                                } )
-                                        }
-                                        Spacer(modifier = Modifier.height(14.dp))
                                         Surface(
                                             Modifier
                                                 .fillMaxWidth()
@@ -391,6 +390,78 @@ fun DetailAtens(
                                                 }
                                             }
                                         }
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        DropdownField(kategoriPpks = jenisAtens ,
+                                            label = "Jenis Atensi" ,
+                                            stringText = jenisAtensString.value,
+                                            modifier = Modifier
+                                                .fillMaxWidth()) {
+                                            dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
+                                                getString = { item, index ->
+                                                    jenisAtensString.value = item
+                                                } )
+                                        }
+                                        AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
+                                            Column {
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text(
+                                                    text = "* Jenis Atensi wajib diisi",
+                                                    fontSize = 10.sp,
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        FilledTextField(
+                                            textString = jenis,
+                                            label = "Jenis",
+                                            imeAction = ImeAction.Default,
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        FilledTextField(
+                                            textString = nilai,
+                                            label = "Nilai",
+                                            imeAction = ImeAction.Default,
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth(),
+                                            keyboardType = KeyboardType.Number
+                                        )
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        DatePicker(context = context, date = tanggalAtensi, label = "Tanggal Atensi")
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        DropdownField(kategoriPpks = pendekatanAtens ,
+                                            label = "Pendekatan Atensi" ,
+                                            stringText = pendekatanAtensString.value,
+                                            modifier = Modifier
+                                                .fillMaxWidth() ) {
+                                            dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
+                                                getString = { item, index ->
+                                                    pendekatanAtensString.value = item
+                                                } )
+                                        }
+                                        AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
+                                            Column {
+                                                Spacer(modifier = Modifier.height(6.dp))
+                                                Text(
+                                                    text = "* Pendekatan Atensi wajib diisi",
+                                                    fontSize = 10.sp,
+                                                    color = Color.Red
+                                                )
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                        FilledTextField(
+                                            textString = penerima,
+                                            label = "Penerima",
+                                            imeAction = ImeAction.Default,
+                                            singleLine = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                        )
                                         Spacer(modifier = Modifier.height(32.dp))
                                         ButtonPrimary(text = {
                                             Row(
