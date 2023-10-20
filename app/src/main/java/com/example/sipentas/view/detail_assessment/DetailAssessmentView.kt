@@ -492,13 +492,13 @@ fun DetailAssessmentView(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.Black
                         )
                     }
                     Text(
                         text = "Detail Penerima Manfaat",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Black
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -507,18 +507,18 @@ fun DetailAssessmentView(
                             onCheckedChange = {isEdit.value = it},
                             colors = SwitchDefaults.colors(
                                 checkedBorderColor = Color.Transparent,
-                                checkedThumbColor = MaterialTheme.colorScheme.background,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = Color(0xFF00A7C0),
                                 uncheckedBorderColor = Color.Transparent,
-                                uncheckedThumbColor = MaterialTheme.colorScheme.background.copy(0.6f),
-                                uncheckedTrackColor = MaterialTheme.colorScheme.surface
+                                uncheckedThumbColor = Color.White.copy(0.6f),
+                                uncheckedTrackColor = Color(0xFF8f8f8f)
                             ),
                             modifier = Modifier
                                 .scale(0.7f))
                         Text(text = "Ubah",
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = Color(0xFF00A7C0),
                             modifier = Modifier
                                 .offset(y= -10.dp))
                     }
@@ -529,7 +529,7 @@ fun DetailAssessmentView(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = Color.White
             ) {
                 Column(
                     Modifier
@@ -957,7 +957,7 @@ private fun FotoBox(
     Surface(
         modifier
             .height(180.dp),
-        color = MaterialTheme.colorScheme.secondary,
+        color = Color(0xFFEB9B4B),
         shape = RoundedCornerShape(16.dp),
     ) {
         Box(

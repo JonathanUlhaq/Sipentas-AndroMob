@@ -27,7 +27,7 @@ fun ButtonPrimary(
         },
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = Color(0xFF00A7C0),
             contentColor = Color.White
         ),
         modifier = Modifier

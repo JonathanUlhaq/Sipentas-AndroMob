@@ -385,13 +385,13 @@ fun FormAssessment(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.Black
                         )
                     }
                     Text(
                         text = "Form Assessment",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Black
                     )
                     Text(
                         text = "Form",
@@ -405,7 +405,7 @@ fun FormAssessment(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = Color.White
             ) {
                 Column(
                     Modifier
@@ -814,7 +814,7 @@ fun FotoBox(
     Surface(
         modifier
             .height(180.dp),
-        color = MaterialTheme.colorScheme.secondary,
+        color = Color(0xFFEB9B4B),
         shape = RoundedCornerShape(16.dp),
     ) {
         Box(

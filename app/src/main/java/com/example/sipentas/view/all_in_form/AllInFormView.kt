@@ -62,6 +62,7 @@ import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.component.OutlineButtonPrimary
 import com.example.sipentas.models.AssesmentBody
+import com.example.sipentas.models.AtensiBody
 import com.example.sipentas.models.TimelineModel
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownAtensi
@@ -228,6 +229,9 @@ fun AllInFormView(
     val urlKk = remember {
         mutableStateOf("")
     }
+    val urlAtensi = remember {
+        mutableStateOf("")
+    }
     val urlKtp = remember {
         mutableStateOf("")
     }
@@ -253,6 +257,10 @@ fun AllInFormView(
     }
     val capturedImagebyUriAtensi = remember {
         mutableStateOf(Uri.EMPTY)
+    }
+
+    val idAssesment = remember {
+        mutableIntStateOf(0)
     }
 
     if (showPermissionAtensi.value) {
@@ -429,6 +437,22 @@ fun AllInFormView(
             closeCamera = {
                 showPermissionAtensi.value = false
                 openCameraAtensi.value = false
+                runBlocking {
+                    val file = File(capturedImagebyUriAtensi.value?.path!!)
+                    val compressor = Compressor.compress(context, file) {
+                        default()
+                        destination(file)
+                    }
+                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                    val gambar = MultipartBody.Part.createFormData(
+                        "file",
+                        compressor.name,
+                        requestBody
+                    )
+                    asVm.addAssesmen(gambar) {
+                        urlAtensi.value = it.file_url!!
+                    }
+                }
                 cameraExecutorAtensi.shutdown()
             },
             onImageCapture = { uri ->
@@ -443,11 +467,11 @@ fun AllInFormView(
         )
     } else {
         Scaffold(
-            containerColor = MaterialTheme.colorScheme.primary,
+            containerColor = Color(0xFF00A7C0),
             topBar = {
                 Row(
                     Modifier
-                        .background(MaterialTheme.colorScheme.primary)
+                        .background(Color(0xFF00A7C0))
                         .fillMaxWidth()
                         .padding(top = 18.dp, start = 10.dp, end = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -461,13 +485,13 @@ fun AllInFormView(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.background
+                            tint = Color.White
                         )
                     }
                     Text(
                         text = "Form Penerima Manfaat",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.background
+                        color = Color.White
                     )
                     Text(
                         text = "Form",
@@ -481,7 +505,7 @@ fun AllInFormView(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.primary
+                color = Color(0xFF00A7C0)
             ) {
                 Column {
                     Column(
@@ -494,14 +518,14 @@ fun AllInFormView(
                                 val checkPm by animateColorAsState(
                                     targetValue = if (checkListPm.value)
                                         Color(0xffB3FFB6)
-                                    else if (currentSelected.value) MaterialTheme.colorScheme.background
-                                    else MaterialTheme.colorScheme.background.copy(0.5f)
+                                    else if (currentSelected.value) Color.White
+                                    else Color.White.copy(0.5f)
                                 )
                                 val checkAssesment by animateColorAsState(
                                     targetValue = if (checkListAssesment.value)
                                         Color(0xffB3FFB6)
-                                    else if (currentSelected.value) MaterialTheme.colorScheme.background
-                                    else MaterialTheme.colorScheme.background.copy(0.5f)
+                                    else if (currentSelected.value) Color.White
+                                    else Color.White.copy(0.5f)
                                 )
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -585,7 +609,7 @@ fun AllInFormView(
                             .fillMaxHeight(),
                         shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
                         shadowElevation = 12.dp,
-                        color = MaterialTheme.colorScheme.background
+                        color = Color.White
                     ) {
                         HorizontalPager(state = pagerState, userScrollEnabled = false) {
                             when (pagerState.currentPage) {
@@ -629,6 +653,7 @@ fun AllInFormView(
                                         long = long.value
                                     ) {
                                         Toast.makeText(context,"Penambahan assesmen berhasil",Toast.LENGTH_SHORT).show()
+                                        idAssesment.intValue = it
                                         runBlocking {
                                             checkListAssesment.value = true
                                             currentIndex.intValue = 2
@@ -641,7 +666,12 @@ fun AllInFormView(
                                         vm =atensiVm ,
                                         showPermission = showPermissionAtensi ,
                                         capturedImagebyUri = capturedImagebyUriAtensi,
-                                        context = context
+                                        context = context,
+                                        idUser = idUser.value,
+                                        idAssesmen = idAssesment.value,
+                                        urlAtensi = urlAtensi.value,
+                                        lat = lat.value,
+                                        long = long.value
                                     ) {
                                         Toast.makeText(context,"Penambahan atensi berhasil",Toast.LENGTH_SHORT).show()
                                         navController.popBackStack()
@@ -666,12 +696,20 @@ fun AtensiForm(
     showPermission:MutableState<Boolean>,
     capturedImagebyUri:MutableState<Uri>,
     context:Context,
+    idUser: String,
+    idAssesmen:Int,
+    urlAtensi:String,
+    lat:String,
+    long:String,
     onClick:() -> Unit
 ) {
     vm.getJenisAtensi()
     vm.getPendekatanAtensi()
     val jenis = remember {
         mutableStateOf("")
+    }
+    val idJenis = remember {
+        mutableIntStateOf(0)
     }
     val nilai = remember {
         mutableStateOf("")
@@ -698,6 +736,9 @@ fun AtensiForm(
     val pendekatanAtensString = remember {
         mutableStateOf("")
     }
+    val idPendekatan = remember {
+        mutableIntStateOf(0)
+    }
     val dropDownAtensi = DropDownAtensi(vm)
     val scrollState = rememberScrollState()
     Column (
@@ -709,7 +750,7 @@ fun AtensiForm(
             Modifier
                 .fillMaxWidth()
                 .height(180.dp),
-            color = MaterialTheme.colorScheme.secondary,
+            color = Color(0xFFEB9B4B),
             shape = RoundedCornerShape(16.dp),
         ) {
             Box(
@@ -760,6 +801,7 @@ fun AtensiForm(
             dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
                 getString = { item, index ->
                     jenisAtensString.value = item
+                    idJenis.intValue = index
                 } )
         }
         AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
@@ -802,6 +844,7 @@ fun AtensiForm(
             dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
                 getString = { item, index ->
                     pendekatanAtensString.value = item
+                    idPendekatan.intValue = index
                 } )
         }
         AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
@@ -837,7 +880,24 @@ fun AtensiForm(
                 )
             }
         }) {
-            onClick.invoke()
+            vm.addAtensi(
+                AtensiBody(
+                    foto = urlAtensi,
+                    id_assesment = idAssesmen,
+                    id_jenis =idJenis.intValue,
+                    id_pendekatan = idPendekatan.intValue,
+                    id_pm = idUser.toInt(),
+                    jenis = jenis.value,
+                    lat = lat,
+                    long = long,
+                    nilai = nilai.value.toLong(),
+                    penerima = penerima.value,
+                    tanggal = tanggalAtensi.value
+                )
+            ) {
+                onClick.invoke()
+
+            }
         }
         Spacer(modifier = Modifier.height(14.dp))
 
@@ -862,7 +922,7 @@ fun FormAssesment(
     idUser:String,
     lat:String,
     long:String,
-    onSuccess:() -> Unit
+    onSuccess:(Int) -> Unit
 ) {
     val context = LocalContext.current
     val pdfUri = remember {
@@ -1279,7 +1339,7 @@ fun FormAssesment(
                         flag = 0
                     )
                 ) {
-                    onSuccess.invoke()
+                    onSuccess.invoke(it)
                 }
 
             }

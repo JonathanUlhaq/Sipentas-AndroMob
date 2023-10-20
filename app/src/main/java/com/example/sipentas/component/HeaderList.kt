@@ -15,10 +15,19 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.example.sipentas.utils.SharePrefs
+import com.example.sipentas.view.login.LoginViewModel
+import javax.inject.Inject
 
 
 @Composable
-fun HeaderList(search: MutableState<String>, label:String) {
+fun HeaderList(
+    search: MutableState<String>,
+    label: String,
+    vm: LoginViewModel
+) {
+
+
     Box(
         modifier = Modifier
             .padding(16.dp)
@@ -35,11 +44,19 @@ fun HeaderList(search: MutableState<String>, label:String) {
                     color = Color.White
                 )
 
-                Text(
-                    text = "Nama",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
-                )
+                Column {
+                    Text(
+                        text = "${vm.getName()}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${vm.getSatker()}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White
+                    )
+                }
             }
             Spacer(modifier = Modifier.height(20.dp))
             FilledTextField(

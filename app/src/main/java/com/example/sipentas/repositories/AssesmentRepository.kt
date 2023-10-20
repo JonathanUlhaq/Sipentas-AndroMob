@@ -1,5 +1,7 @@
 package com.example.sipentas.repositories
 
+import com.example.sipentas.models.AssesmenItem
+import com.example.sipentas.models.AssesmenResponse
 import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.models.AssesmentResponse
 import com.example.sipentas.models.KategoriPendidikanResponse
@@ -18,6 +20,6 @@ class AssesmentRepository @Inject constructor(private val api:SipentasAPI) {
     suspend fun getPekerjaan():List<PekerjaanResponse> = api.getPekerjaan()
     suspend fun getStatusOrtu():List<KategoriStatusOrtuResponse> = api.getStatusOrtu()
     suspend fun getTempatTinggal():List<KategoriTempatTinggal> = api.getTempatTinggal()
-    suspend fun addAssesmen(body:AssesmentBody) = api.addAssesmen(body)
+    suspend fun addAssesmen(body:AssesmentBody): AssesmenResponse = api.addAssesmen(body)
     suspend fun addFile(file:MultipartBody.Part) = api.uploadPhoto(file)
 }

@@ -49,7 +49,11 @@ fun ProfileView(
 ) {
 
     val name = remember {
-        mutableStateOf("")
+        mutableStateOf(vm.getNama()!!)
+    }
+
+    val satker = remember {
+        mutableStateOf(vm.getSatker()!!)
     }
     val logoutConfirm = remember {
         mutableStateOf(false)
@@ -66,7 +70,7 @@ fun ProfileView(
             Modifier
                 .padding(it)
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = Color.White
         ) {
             Column (
                                    ) {
@@ -75,7 +79,7 @@ fun ProfileView(
                         Modifier
                             .fillMaxWidth()
                             .height(120.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF00A7C0),
                         shape = RoundedCornerShape(bottomEnd = 15.dp, bottomStart = 15.dp)
                     ) {
                         Box(
@@ -87,7 +91,7 @@ fun ProfileView(
                             Text(
                                 text = "Profile",
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.background
+                                color = Color.White
                             )
                         }
                     }
@@ -98,12 +102,12 @@ fun ProfileView(
                         .offset(y = 72.dp)) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.background,
+                            color = Color.White,
                             shadowElevation = 0.dp
                         ) {
                             Icon(painter = painterResource(id = R.drawable.profile_icon),
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = Color(0xFF00A7C0),
                                 modifier = Modifier
                                     .padding(12.dp)
                                     .size(62.dp))
@@ -116,10 +120,12 @@ fun ProfileView(
 
                 ) {
                     Spacer(modifier = Modifier.height(34.dp))
-                    FilledTextField(textString = name , label = "Nama" )
+                    FilledTextField(textString = name , label = "Nama", enabled = false )
+                    Spacer(modifier = Modifier.height(14.dp))
+                    FilledTextField(textString = satker , label = "Satker", enabled = false )
                     Spacer(modifier = Modifier.height(14.dp))
                     ButtonSecondary(
-                        MaterialTheme.colorScheme.primary,
+                        Color(0xFF00A7C0),
                         R.drawable.arrow_right,
                         "Ubah Password"
                     ) {
@@ -173,12 +179,12 @@ private fun ButtonSecondary(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.background
+                color = Color.White
             )
             Icon(
                 painter = painterResource(id = icon),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.background,
+                tint = Color.White,
                 modifier = Modifier
                     .size(12.dp)
             )

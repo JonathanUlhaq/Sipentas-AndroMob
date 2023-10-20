@@ -17,6 +17,8 @@ class ProfileViewModel @Inject constructor(private val repo:ProfileRepository,va
             try {
                 repo.logout().let {
                     prefs.saveToken("")
+                    prefs.saveSatker("")
+                    prefs.saveName("")
                     Log.e("LOGOUT BEHASIL:","YE")
                     onSuccess.invoke()
                 }
@@ -25,4 +27,7 @@ class ProfileViewModel @Inject constructor(private val repo:ProfileRepository,va
                 onFailure.invoke()
             }
         }
+
+    fun getNama():String? = prefs.getName()
+    fun getSatker():String? = prefs.getSatker()
 }

@@ -21,6 +21,8 @@ class LoginViewModel @Inject constructor(val repo: LoginRepository,val prefs:Sha
             try {
                 repo.login(LoginModel(nik, password)).let { item ->
                     item.token?.let { prefs.saveToken(it) }
+                    item.user?.name?.let { prefs.saveName(it) }
+                    item.user?.sentra?.let { prefs.saveSatker(it.toString()) }
                     Log.d("Sudah Tersimpan",getToken()!!)
                     onSuccess.invoke()
                 }
@@ -29,6 +31,9 @@ class LoginViewModel @Inject constructor(val repo: LoginRepository,val prefs:Sha
                 onError.invoke(e)
             }
         }
+
+    fun getName():String? = prefs.getName()
+    fun getSatker():String? = prefs.getSatker()
 
     fun getToken():String? = prefs.getToken()
 }

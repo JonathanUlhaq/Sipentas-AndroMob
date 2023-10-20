@@ -23,6 +23,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -37,12 +38,19 @@ import com.example.sipentas.R
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
 import com.example.sipentas.navigation.AppRoute
+import com.example.sipentas.view.detail_atensi.DetailAtensiViewModel
+import com.example.sipentas.view.login.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Atensi(
-    navController: NavController
+    navController: NavController,
+    loginVm: LoginViewModel,
+    detailVm: DetailAtensiViewModel
 ) {
+
+    detailVm.getAtensi()
+    val uiState = detailVm.uiState.collectAsState().value
     val search = remember {
         mutableStateOf("")
     }
@@ -76,67 +84,76 @@ fun Atensi(
             Modifier
                 .padding(it)
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.primary
+            color = Color(0xFF00A7C0)
         ) {
             Column {
-                HeaderList(search, "Atensi")
+                HeaderList(search, "Atensi", loginVm)
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(16.dp),
-                        content = {
-                            itemsIndexed(nama) {
-                                    index,item ->
-                                Surface(
-                                    color = Color(0xFFF8F8F8),
-                                    shape = RoundedCornerShape(6.dp),
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(6.dp))
-                                        .clickable {
-                                            navController.navigate(AppRoute.DetailAtensi.route)
-                                        }
-                                ) {
-                                    Row(
-                                        Modifier
-                                            .padding(16.dp)
-                                            .fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                    if (uiState.rows != null) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(16.dp),
+                            content = {
+                                itemsIndexed(uiState.rows) { index, item ->
+                                    Surface(
+                                        color = Color(0xFFF8F8F8),
+                                        shape = RoundedCornerShape(6.dp),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .clickable {
+                                                navController.navigate(
+                                                    AppRoute.DetailAtensi.route
+                                                            + "/${if (item.id_pm != null) item.id_pm else "0"}"
+                                                            + "/${if (item.id_assessment != null) item.id_assessment else "0"}"
+                                                            + "/${if (item.nama_pm != null) item.nama_pm else "null"}"
+                                                            + "/${if (item.nik_pm != null) item.nik_pm else "0"}"
+                                                            + "/${if (item.petugas_assesmen != null) item.petugas_assesmen else "null"}"
+
+                                                )
+                                            }
                                     ) {
-                                        Column {
+                                        Row(
+                                            Modifier
+                                                .padding(16.dp)
+                                                .fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Column {
+                                                Text(
+                                                    text = item.nama_pm!!,
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    fontSize = 12.sp,
+                                                    color = Color(0xFF515151)
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = item.id_atensi!!.toString(),
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontSize = 10.sp,
+                                                    color = Color(0xFFC3C3C3)
+                                                )
+                                                Spacer(modifier = Modifier.height(4.dp))
+                                                Text(
+                                                    text = "${if (item.tanggal_assesmen != null) item.tanggal_assesmen else " "}",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontSize = 10.sp,
+                                                    color = Color(0xFFC3C3C3)
+                                                )
+                                            }
                                             Text(
-                                                text = item,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontSize = 12.sp,
-                                                color = Color(0xFF515151)
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = id[index],
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontSize = 10.sp,
-                                                color = Color(0xFFC3C3C3)
-                                            )
-                                            Spacer(modifier = Modifier.height(4.dp))
-                                            Text(
-                                                text = tanggal[index],
+                                                text = "${item.petugas_assesmen!!}",
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontSize = 10.sp,
                                                 color = Color(0xFFC3C3C3)
                                             )
                                         }
-                                        Text(
-                                            text = petugas[index],
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFC3C3C3)
-                                        )
                                     }
+                                    Spacer(modifier = Modifier.height(14.dp))
                                 }
-                                Spacer(modifier = Modifier.height(14.dp))
-                            }
-                        })
+                            })
+                    }
                 }
             }
         }

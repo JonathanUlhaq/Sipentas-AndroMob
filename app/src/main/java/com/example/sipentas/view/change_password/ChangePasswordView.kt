@@ -101,13 +101,13 @@ fun ChangePasswordView(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = Color(0xFF00A7C0)
                         )
                     }
                     Text(
                         text = "Ganti Password",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color(0xFF00A7C0)
                     )
                 }
             }
@@ -117,7 +117,7 @@ fun ChangePasswordView(
             Modifier
                 .padding(it)
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
+            color = Color.White
         ) {
             Column(
                 Modifier

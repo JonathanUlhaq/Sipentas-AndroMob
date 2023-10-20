@@ -2,6 +2,7 @@ package com.example.sipentas.view.detail_atensi
 
 import android.net.Uri
 import android.widget.Space
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -34,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -55,6 +57,7 @@ import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.component.OutlineButtonPrimary
+import com.example.sipentas.models.AtensiBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownAtensi
 import com.example.sipentas.utils.DropDownDummy
@@ -62,6 +65,13 @@ import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.form_assessment.PickPdfFile
 import com.example.sipentas.widgets.DatePicker
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.default
+import id.zelory.compressor.constraint.destination
+import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.util.concurrent.Executors
 
@@ -69,7 +79,13 @@ import java.util.concurrent.Executors
 @Composable
 fun DetailAtens(
     navController: NavController,
-    vm:DetailAtensiViewModel
+    vm:DetailAtensiViewModel,
+    idPm:String,
+    idAssesmen:String,
+    penerimaNama:String,
+    nik:String,
+    petugas:String
+
 ) {
 
     vm.getJenisAtensi()
@@ -82,6 +98,32 @@ fun DetailAtens(
         "Keluarga"
     )
 
+
+    val showPermission = remember {
+        mutableStateOf(false)
+    }
+    val openCamera = remember {
+        mutableStateOf(false)
+    }
+    val capturedImagebyUri = remember {
+        mutableStateOf(Uri.EMPTY)
+    }
+
+    val jenis = remember {
+        mutableStateOf("")
+    }
+    val idJenis = remember {
+        mutableIntStateOf(0)
+    }
+    val nilai = remember {
+        mutableStateOf("")
+    }
+    val tanggalAtensi = remember {
+        mutableStateOf("")
+    }
+    val penerima = remember {
+        mutableStateOf("")
+    }
     val addForm = remember {
         mutableStateOf(false)
     }
@@ -98,27 +140,13 @@ fun DetailAtens(
     val pendekatanAtensString = remember {
         mutableStateOf("")
     }
-    val showPermission = remember {
-        mutableStateOf(false)
+    val idPendekatan = remember {
+        mutableIntStateOf(0)
     }
-    val openCamera = remember {
-        mutableStateOf(false)
-    }
-    val capturedImagebyUri = remember {
-        mutableStateOf(Uri.EMPTY)
-    }
-    val jenis = remember {
+    val urlAtensi = remember {
         mutableStateOf("")
     }
-    val nilai = remember {
-        mutableStateOf("")
-    }
-    val tanggalAtensi = remember {
-        mutableStateOf("")
-    }
-    val penerima = remember {
-        mutableStateOf("")
-    }
+
     val context = LocalContext.current
     val dropDownAtensi = DropDownAtensi(vm)
     if (showPermission.value) {
@@ -145,6 +173,22 @@ fun DetailAtens(
                 capturedImagebyUri.value = uri
                 showPermission.value = false
                 openCamera.value = false
+                runBlocking {
+                    val file = File(capturedImagebyUri.value?.path!!)
+                    val compressor = Compressor.compress(context, file) {
+                        default()
+                        destination(file)
+                    }
+                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                    val gambar = MultipartBody.Part.createFormData(
+                        "file",
+                        compressor.name,
+                        requestBody
+                    )
+                    vm.postPhoto(gambar, onError = {}) {
+                        urlAtensi.value = it.file_url!!
+                    }
+                }
                 cameraExecutor.shutdown()
             },
             onError = {
@@ -157,7 +201,7 @@ fun DetailAtens(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = Color.White
             ) {
                 Column {
                     Box {
@@ -184,13 +228,13 @@ fun DetailAtens(
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(16.dp),
-                                            tint = MaterialTheme.colorScheme.background
+                                            tint = Color.White
                                         )
                                     }
                                     Text(
                                         text = "Detail Atensi",
                                         style = MaterialTheme.typography.titleMedium,
-                                        color = MaterialTheme.colorScheme.background
+                                        color = Color.White
                                     )
                                     Text(
                                         text = "Form",
@@ -210,7 +254,7 @@ fun DetailAtens(
                                 Modifier
                                     .width(140.dp)
                                     .height(70.dp),
-                                color = MaterialTheme.colorScheme.background,
+                                color = Color.White,
                                 shape = RoundedCornerShape(12.dp),
                                 shadowElevation = 12.dp,
 
@@ -241,13 +285,13 @@ fun DetailAtens(
                                         .wrapContentWidth(CenterHorizontally)
                                 ) {
                                     Text(
-                                        text = "Alex | ",
+                                        text = "$penerimaNama",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontSize = 16.sp,
                                         color = Color.Black
                                     )
                                     Text(
-                                        text = "7628362819273623",
+                                        text = "$nik",
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontSize = 16.sp,
                                         color = Color.Black
@@ -272,7 +316,7 @@ fun DetailAtens(
                                         )
                                         Spacer(modifier = Modifier.height(4.dp))
                                         Text(
-                                            text = "Petugas: Indrajaya",
+                                            text = "Petugas: $petugas",
                                             color = Color(0xFF8D8D8D),
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontSize = 10.sp,
@@ -348,7 +392,7 @@ fun DetailAtens(
                                             Modifier
                                                 .fillMaxWidth()
                                                 .height(180.dp),
-                                            color = MaterialTheme.colorScheme.secondary,
+                                            color = Color(0xFFEB9B4B),
                                             shape = RoundedCornerShape(16.dp),
                                         ) {
                                             Box(
@@ -399,6 +443,7 @@ fun DetailAtens(
                                             dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
                                                 getString = { item, index ->
                                                     jenisAtensString.value = item
+                                                    idJenis.intValue = index
                                                 } )
                                         }
                                         AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
@@ -441,6 +486,7 @@ fun DetailAtens(
                                             dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
                                                 getString = { item, index ->
                                                     pendekatanAtensString.value = item
+                                                    idPendekatan.intValue = index
                                                 } )
                                         }
                                         AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
@@ -476,24 +522,26 @@ fun DetailAtens(
                                                 )
                                             }
                                         }) {
-
+                                            vm.addAtensi(
+                                                AtensiBody(
+                                                    foto = urlAtensi.value,
+                                                    id_assesment = idAssesmen.toInt(),
+                                                    id_jenis =idJenis.intValue,
+                                                    id_pendekatan = idPendekatan.intValue,
+                                                    id_pm = idPm.toInt(),
+                                                    jenis = jenis.value,
+                                                    lat = "0",
+                                                    long = "0",
+                                                    nilai = nilai.value.toLong(),
+                                                    penerima = penerima.value,
+                                                    tanggal = tanggalAtensi.value
+                                                )
+                                            ) {
+                                                Toast.makeText(context,"Atensi berhasil ditambah",Toast.LENGTH_SHORT).show()
+                                            }
                                         }
                                         Spacer(modifier = Modifier.height(14.dp))
-                                        OutlineButtonPrimary(text = {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically
-                                            ) {
-                                                Text(
-                                                    text = "Batal",
-                                                    style = MaterialTheme.typography.titleMedium,
-                                                    modifier = Modifier
-                                                        .padding(top = 6.dp, bottom = 6.dp),
-                                                    fontSize = 14.sp
-                                                )
-                                            }
-                                        }) {
-                                            addForm.value = false
-                                        }
+
                                     }
                                 }
                             }

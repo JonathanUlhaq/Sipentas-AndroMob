@@ -275,13 +275,13 @@ fun FormView(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.Black
                         )
                     }
                     Text(
                         text = "Form Penerima Manfaat",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Black
                     )
                     Text(
                         text = "Form",
@@ -295,7 +295,7 @@ fun FormView(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = Color.White
             ) {
                 Column(
                     Modifier
@@ -306,7 +306,7 @@ fun FormView(
                         Modifier
                             .fillMaxWidth()
                             .height(180.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF00A7C0),
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Box(

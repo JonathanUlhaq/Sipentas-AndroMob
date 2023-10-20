@@ -31,8 +31,8 @@ fun BottomNav(navController: NavController) {
         BotNavRoute.Profile
     )
     NavigationBar(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.surface,
+        containerColor = Color.White,
+        contentColor = Color(0xFF8f8f8f),
         tonalElevation = 32.dp
     ) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -65,8 +65,8 @@ fun BottomNav(navController: NavController) {
                 },
                 alwaysShowLabel = true,
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                    selectedIconColor = Color(0xFF00A7C0),
+                    selectedTextColor = Color(0xFF00A7C0),
                     unselectedIconColor = Color(0xFFB0B0B0),
                     unselectedTextColor = Color(0xFFB0B0B0),
                     indicatorColor = Color(0xFFFBFBFB)

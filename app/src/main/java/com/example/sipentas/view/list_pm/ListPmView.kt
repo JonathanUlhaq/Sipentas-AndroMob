@@ -51,6 +51,7 @@ import com.example.sipentas.component.ListBody
 import com.example.sipentas.models.PmModel
 import com.example.sipentas.navigation.AppRoute
 import com.example.sipentas.utils.ComposeDialog
+import com.example.sipentas.view.login.LoginViewModel
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -58,7 +59,8 @@ import me.saket.swipe.SwipeableActionsBox
 @Composable
 fun ListPmView(
     vm: ListPmViewModel,
-    navController: NavController
+    navController: NavController,
+    loginVm:LoginViewModel
 ) {
     vm.getPmData()
     val uiState = vm.uiState.collectAsState().value
@@ -85,7 +87,7 @@ fun ListPmView(
                 onClick = {
                     navController.navigate(AppRoute.Form.route)
                 },
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = Color(0xFF00A7C0),
                 shape = CircleShape
             ) {
                 Icon(
@@ -102,10 +104,10 @@ fun ListPmView(
             Modifier
                 .padding(it)
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.primary
+            color = Color(0xFF00A7C0)
         ) {
             Column {
-                HeaderList(search, "Penerima Manfaat")
+                HeaderList(search, "Penerima Manfaat",loginVm)
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
                     if (uiState.isNotEmpty()) {
@@ -150,7 +152,7 @@ private fun ListPmItem(
                 navController.navigate(
                     AppRoute.DetailPm.route
                             + "/${item.nama_ragam}"
-                            + "/${item.id_kelurahan}"
+                            + "/${if (!item.id_kelurahan.isNullOrEmpty()) item.id_kelurahan else "0"}"
                             + "/${item.id}"
                             + "/${item.id_agama}"
                             + "/${item.id_ragam}"

@@ -103,7 +103,7 @@ fun DetailView(
     id_pm:String,
     currentAgamaId:String,
     currentRagamId:String,
-    currentKelurahanId:String
+    currentKelurahanId:String?
 ) {
 
     vm.getProvinsi()
@@ -245,7 +245,7 @@ fun DetailView(
         mutableStateOf(false)
     }
     val kelurahanId = remember {
-        mutableLongStateOf(currentKelurahanId.toLong())
+        mutableLongStateOf(currentKelurahanId!!.toLong())
     }
     val ragamId = remember {
         mutableIntStateOf(currentRagamId.toInt())
@@ -316,13 +316,13 @@ fun DetailView(
                             contentDescription = null,
                             modifier = Modifier
                                 .size(16.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = Color.Black
                         )
                     }
                     Text(
                         text = "Detail Penerima Manfaat",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = Color.Black
                     )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -332,11 +332,11 @@ fun DetailView(
                             onCheckedChange = { isEdit.value = it },
                             colors = SwitchDefaults.colors(
                                 checkedBorderColor = Color.Transparent,
-                                checkedThumbColor = MaterialTheme.colorScheme.background,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                checkedThumbColor = Color(0xFFFFFFFF),
+                                checkedTrackColor = Color(0xFF00A7C0),
                                 uncheckedBorderColor = Color.Transparent,
-                                uncheckedThumbColor = MaterialTheme.colorScheme.background.copy(0.6f),
-                                uncheckedTrackColor = MaterialTheme.colorScheme.surface
+                                uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
+                                uncheckedTrackColor = Color(0xFF8f8f8f)
                             ),
                             modifier = Modifier
                                 .scale(0.7f)
@@ -345,7 +345,7 @@ fun DetailView(
                             text = "Ubah",
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = Color(0xFF00A7C0),
                             modifier = Modifier
                                 .offset(y = -10.dp)
                         )
@@ -357,7 +357,7 @@ fun DetailView(
                 Modifier
                     .padding(it)
                     .fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
+                color = Color(0xFFFFFFFF)
             ) {
                 Column(
                     Modifier
@@ -368,7 +368,7 @@ fun DetailView(
                         Modifier
                             .fillMaxWidth()
                             .height(180.dp),
-                        color = MaterialTheme.colorScheme.primary,
+                        color = Color(0xFF00A7C0),
                         shape = RoundedCornerShape(16.dp),
                     ) {
                         Box(
@@ -635,7 +635,7 @@ fun DetailView(
                         modifier = Modifier.fillMaxWidth(),
                         "Kabupaten *",
                         kabupatenString.value,
-                        isEnable = provinsiString.value.isNotEmpty()
+                        isEnable = provinsiString.value.isNotEmpty() && isEdit.value
                     ) {
                         dropCompose.DropDownKabupaten(expand = kabupaten) { string, id ->
                             kabupatenString.value = string
@@ -658,7 +658,7 @@ fun DetailView(
                         modifier = Modifier.fillMaxWidth(),
                         "Kecamatan",
                         kecamatanString.value,
-                        isEnable = kabupatenString.value.isNotEmpty()
+                        isEnable = kabupatenString.value.isNotEmpty() && isEdit.value
                     ) {
                         dropCompose.DropDownKecamatan(expand = kecamatan) { string, id ->
                             kecamatanString.value = string
@@ -672,7 +672,7 @@ fun DetailView(
                         modifier = Modifier.fillMaxWidth(),
                         "Kelurahan",
                         kelurahanString.value,
-                        isEnable = kecamatanString.value.isNotEmpty()
+                        isEnable = kecamatanString.value.isNotEmpty() && isEdit.value
                     ) {
                         dropCompose.DropDownKelurahan(expand = kelurahan) { string, id ->
                             kelurahanString.value = string

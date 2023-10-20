@@ -27,5 +27,14 @@ class SharePrefs @Inject constructor(@ApplicationContext context: Context) {
     fun getName():String? =
         prefs.getString("USER_NAME",null)
 
+    fun saveSatker(name:String) {
+        val editor = prefs.edit()
+        editor.putString("USER_SATKER",name)
+        editor.apply()
+    }
+
+    fun getSatker():String? =
+        prefs.getString("USER_SATKER",null)
+
 
 }

@@ -5,8 +5,12 @@ import com.example.sipentas.di.KategoriModel
 import com.example.sipentas.di.ProvinsiModel
 import com.example.sipentas.di.RagamModel
 import com.example.sipentas.models.AddPmResponse
+import com.example.sipentas.models.AssesmenItem
+import com.example.sipentas.models.AssesmenResponse
 import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.models.AssesmentResponse
+import com.example.sipentas.models.AtensiBody
+import com.example.sipentas.models.AtensiResponse
 import com.example.sipentas.models.JenisAtensiResponse
 import com.example.sipentas.models.KategoriPendidikanResponse
 import com.example.sipentas.models.KategoriStatusOrtuResponse
@@ -45,10 +49,11 @@ interface SipentasAPI {
     ):UploadResponse
 
 
+
     @POST("assessment/create")
     suspend fun addAssesmen(
         @Body body:AssesmentBody
-    )
+    ):AssesmenResponse
 
     @POST("login")
     suspend fun login(@Body body:LoginModel):LoginResponse
@@ -58,7 +63,7 @@ interface SipentasAPI {
 
     @POST("create-pm")
     suspend fun addPm(@Body body:PostPmModel):AddPmResponse
-    @GET("pm")
+    @GET("pm-by-sentra")
     suspend fun getAllPm():List<PmModel>
     @GET("assessment-by-sentra")
     suspend fun getAssesment():AssesmentResponse
@@ -103,4 +108,10 @@ interface SipentasAPI {
     suspend fun getJenisAtensi():List<JenisAtensiResponse>
     @GET("pendekatan-atensi")
     suspend fun getPendekatanAtensi():List<PendekatanAtensiResponse>
+
+    @GET("atensi")
+    suspend fun getAtensi():AtensiResponse
+
+    @POST("create-atensi")
+    suspend fun addAtensi(@Body body:AtensiBody)
 }

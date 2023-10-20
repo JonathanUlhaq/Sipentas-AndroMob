@@ -58,16 +58,16 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
 
         composable(BotNavRoute.PenerimaManfaat.route) {
             showBottomBar.value = true
-            ListPmView(listViewModel, navController = navController)
+            ListPmView(listViewModel, navController = navController,loginViewModel)
         }
         composable(BotNavRoute.Assessment.route) {
             showBottomBar.value = true
-            AssessmentView(navController = navController, assesmenViewModel)
+            AssessmentView(navController = navController, assesmenViewModel,loginViewModel)
         }
 
         composable(BotNavRoute.Atensi.route) {
             showBottomBar.value = true
-            Atensi(navController)
+            Atensi(navController,loginViewModel,detailAtensiVm)
         }
         composable(BotNavRoute.Profile.route) {
             showBottomBar.value = true
@@ -164,7 +164,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 id_pm = it.arguments?.getString("id")!!,
                 currentAgamaId = it.arguments?.getString("agamaId")!!,
                 currentRagamId = it.arguments?.getString("ragamId")!!,
-                currentKelurahanId = it.arguments?.getString("kelurahanId")!!
+                currentKelurahanId = it.arguments?.getString("kelurahanId")
             )
         }
 
@@ -178,9 +178,25 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
             )
         }
 
-        composable(AppRoute.DetailAtensi.route) {
+        composable(AppRoute.DetailAtensi.route
+                + "/{idPm}"
+                + "/{idAssesmen}"
+                + "/{penerima}"
+                + "/{nik}"
+                + "/{petugas}"
+
+        ) {
             showBottomBar.value = false
-            DetailAtens(navController = navController,detailAtensiVm)
+            DetailAtens(navController = navController,
+                detailAtensiVm,
+                idPm = it.arguments?.getString("idPm")!!,
+                idAssesmen = it.arguments?.getString("idAssesmen")!!,
+                penerimaNama = it.arguments?.getString("penerima")!!,
+                nik = it.arguments?.getString("nik")!!,
+                petugas = it.arguments?.getString("petugas")!!
+
+            )
+
         }
 
         composable(AppRoute.UpdatePassword.route) {

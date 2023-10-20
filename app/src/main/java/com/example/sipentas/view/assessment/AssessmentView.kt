@@ -42,12 +42,14 @@ import com.example.sipentas.R
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
 import com.example.sipentas.navigation.AppRoute
+import com.example.sipentas.view.login.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssessmentView(
     navController: NavController,
-    vm: AssesmenViewModel
+    vm: AssesmenViewModel,
+    loginVm:LoginViewModel
 ) {
     val search = remember {
         mutableStateOf("")
@@ -79,10 +81,10 @@ fun AssessmentView(
             Modifier
                 .padding(it)
                 .fillMaxSize(),
-            color = MaterialTheme.colorScheme.primary
+            color = Color(0xFF00A7C0)
         ) {
             Column {
-                HeaderList(search, "Assessment")
+                HeaderList(search, "Assessment",loginVm)
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
                     if (uiState.rows != null) {
@@ -194,7 +196,7 @@ fun AssessmentView(
                                                     Icon(
                                                         painter = painterResource(id = changeIcon),
                                                         contentDescription = null,
-                                                        tint = MaterialTheme.colorScheme.background,
+                                                        tint = Color.White,
                                                         modifier = Modifier
                                                             .size(14.dp)
                                                     )

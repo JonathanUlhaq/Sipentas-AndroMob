@@ -110,12 +110,12 @@ class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepositor
             }
         }
 
-    fun addAssesmen(body: AssesmentBody,onSuccess:() -> Unit) =
+    fun addAssesmen(body: AssesmentBody,onSuccess:(Int) -> Unit) =
         viewModelScope.launch {
             try {
                 repo.addAssesmen(body).let {
                     Log.d("Berhasil ye","SUKSES")
-                    onSuccess.invoke()
+                    onSuccess.invoke(it.rows?.get(0)!!.id!!)
                 }
             } catch (e:Exception) {
                 Log.d("ERROR GET DATA ",e.toString())

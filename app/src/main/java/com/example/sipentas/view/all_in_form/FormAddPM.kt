@@ -260,7 +260,7 @@ fun FormAddPm(
             Modifier
                 .fillMaxWidth()
                 .height(180.dp),
-            color = MaterialTheme.colorScheme.primary,
+            color = Color(0xFF00A7C0),
             shape = RoundedCornerShape(16.dp),
         ) {
             Box(
