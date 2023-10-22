@@ -83,10 +83,10 @@ fun DetailAssessmentView(
     navController: NavController,
     asVm:AssesmenViewModel,
     vm:FormPmViewModel,
-    urlRumah:String,
-    urlFisik:String,
-    urlKk:String,
-    urlKtp:String,
+    urlRumahs:String,
+    urlFisiks:String,
+    urlKks:String,
+    urlKtps:String,
     curPendidikan:String,
     curPendidikanId:String,
     curSumber:String,
@@ -119,7 +119,7 @@ fun DetailAssessmentView(
         mutableStateOf(false)
     }
     val pendidikanString = remember {
-        mutableStateOf(curPendidikan)
+        mutableStateOf(if (curPendidikan == "0") "" else curPendidikan)
     }
 
     val sumber = remember {
@@ -133,7 +133,7 @@ fun DetailAssessmentView(
         mutableStateOf(false)
     }
     val pekerjaanString = remember {
-        mutableStateOf(curPekerjaan)
+        mutableStateOf(if (curPekerjaan == "0") "" else curPekerjaan)
     }
 
     val lembaga = remember {
@@ -147,14 +147,14 @@ fun DetailAssessmentView(
         mutableStateOf(false)
     }
     val statusOrtuString = remember {
-        mutableStateOf(curStatusOrtu)
+        mutableStateOf(if (curStatusOrtu == "0" || curStatusOrtu == "null") "" else curStatusOrtu)
     }
 
     val pekerjaanOrtu = remember {
         mutableStateOf(false)
     }
     val pekerjaanOrtuString = remember {
-        mutableStateOf(curPekerOrtu)
+        mutableStateOf(if (curPekerOrtu == "0") "" else curPekerOrtu)
     }
 
 
@@ -162,7 +162,7 @@ fun DetailAssessmentView(
         mutableStateOf(false)
     }
     val tempatTinggalString = remember {
-        mutableStateOf(curTempatTinggal)
+        mutableStateOf(if (curTempatTinggal == "0") "" else curTempatTinggal)
     }
 
 //    State Camera Rumah
@@ -243,16 +243,16 @@ fun DetailAssessmentView(
     }
 
     val urlFisik = remember {
-        mutableStateOf(urlFisik)
+        mutableStateOf(urlFisiks)
     }
     val urlKk = remember {
-        mutableStateOf(urlKk)
+        mutableStateOf(urlKks)
     }
     val urlKtp = remember {
-        mutableStateOf(urlKtp)
+        mutableStateOf(urlKtps)
     }
     val urlRumah = remember {
-        mutableStateOf(urlRumah)
+        mutableStateOf(urlRumahs)
     }
 
     val idUser = remember {
@@ -275,13 +275,13 @@ fun DetailAssessmentView(
         mutableIntStateOf(curPekerjaanId.toInt())
     }
     val tanggalLahir = remember {
-        mutableStateOf(curTanggal)
+        mutableStateOf(if (curTanggal == "0") "" else curTanggal)
     }
     val petugas = remember {
-        mutableStateOf(curPetugas)
+        mutableStateOf(if (curPetugas == "0") "" else curPetugas)
     }
     val dtks = remember {
-        mutableStateOf(curDtks)
+        mutableStateOf(if (curDtks == "0") "" else curDtks)
     }
     val statusInt = remember {
         mutableIntStateOf(curStatusOrtuId.toInt())
@@ -293,34 +293,30 @@ fun DetailAssessmentView(
         mutableIntStateOf(curTempatTinggalId.toInt())
     }
     val namaBapak = remember {
-        mutableStateOf(curNamaBapak)
+        mutableStateOf(if (curNamaBapak == "0") "" else curNamaBapak)
     }
     val namaIbu = remember {
-        mutableStateOf(curNamaIbu)
+        mutableStateOf(if (curNamaIbu == "0") "" else curNamaIbu)
     }
     val nikIbu = remember {
-        mutableStateOf(curNikIbu)
+        mutableStateOf(if (curNikIbu == "0") "" else curNikIbu)
     }
     val namaWali = remember {
-        mutableStateOf(curNamaWali)
+        mutableStateOf(if (curNamaWali == "0") "" else curNamaWali)
     }
     val penghasilan = remember {
-        mutableStateOf(curPenghasilan)
+        mutableStateOf(if (curPenghasilan == "0") "" else curPenghasilan)
     }
     val catatan = remember {
-        mutableStateOf(curCatatan)
+        mutableStateOf(if (curCatatan == "0") "" else curCatatan)
     }
 
     val formWajib = remember {
         mutableStateOf(false)
     }
 
-    formWajib.value = pendidikanString.value.isEmpty()
-            || sumberString.value.isEmpty()
-            || pekerjaanString.value.isEmpty()
-            || statusOrtuString.value.isEmpty()
-            || pekerjaanOrtuString.value.isEmpty()
-            || tempatTinggalString.value.isEmpty()
+    formWajib.value = sumberString.value.isEmpty()
+
 
     if (showPermissionKtp.value) {
         RequestCameraPermission(
@@ -334,466 +330,338 @@ fun DetailAssessmentView(
             openCamera = openCameraKtp
         )
     }
-    if (openCameraRumah.value) {
-        CameraView(
-            outputDirectory = outputRumah,
-            executor = cameraExecutorRumah,
-            closeCamera = {
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                cameraExecutorRumah.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriRumah.value = uri
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriRumah.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlRumah.value = it.file_url!!
-                    }
-                }
-                cameraExecutorRumah.shutdown()
-            },
-            onError = {
 
-            }
-        )
-    } else if (openCameraFisik.value) {
-        CameraView(
-            outputDirectory = outputFisik,
-            executor = cameraExecutorFisik,
-            closeCamera = {
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                cameraExecutorFisik.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriFisik.value = uri
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriFisik.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlFisik.value = it.file_url!!
-                    }
-                }
-                cameraExecutorFisik.shutdown()
-            },
-            onError = {
+   Box {
 
-            }
-        )
-    } else if (openCameraKk.value) {
-        CameraView(
-            outputDirectory = outputKk,
-            executor = cameraExecutorKk,
-            closeCamera = {
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                cameraExecutorKk.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKk.value = uri
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriKk.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlKk.value = it.file_url!!
-                    }
-                }
-                cameraExecutorKk.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else if (openCameraKtp.value) {
-        CameraView(
-            outputDirectory = outputKtp,
-            executor = cameraExecutorKtp,
-            closeCamera = {
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                cameraExecutorKtp.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKtp.value = uri
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriKtp.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlKtp.value = it.file_url!!
-                    }
-                }
-                cameraExecutorKtp.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else {
-        Scaffold(
-            topBar = {
-                Row(
-                    Modifier
-                        .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = {
-                        navController.popBackStack()
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.back_icon),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(16.dp),
-                            tint = Color.Black
-                        )
-                    }
-                    Text(
-                        text = "Detail Penerima Manfaat",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color.Black
-                    )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Switch(checked =isEdit.value ,
-                            onCheckedChange = {isEdit.value = it},
-                            colors = SwitchDefaults.colors(
-                                checkedBorderColor = Color.Transparent,
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = Color(0xFF00A7C0),
-                                uncheckedBorderColor = Color.Transparent,
-                                uncheckedThumbColor = Color.White.copy(0.6f),
-                                uncheckedTrackColor = Color(0xFF8f8f8f)
-                            ),
-                            modifier = Modifier
-                                .scale(0.7f))
-                        Text(text = "Ubah",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 10.sp,
-                            color = Color(0xFF00A7C0),
-                            modifier = Modifier
-                                .offset(y= -10.dp))
-                    }
-                }
-            }
-        ) {
-            Surface(
-                Modifier
-                    .padding(it)
-                    .fillMaxSize(),
-                color = Color.White
-            ) {
-                Column(
-                    Modifier
-                        .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
-                        .verticalScroll(scrollState)
-                ) {
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        com.example.sipentas.view.form_assessment.FotoBox(
-                            showPermissionRumah, capturedImagebyUriRumah, Modifier
-                                .fillMaxWidth(0.5f), "Rumah",urlRumah.value
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        com.example.sipentas.view.form_assessment.FotoBox(
-                            showPermissionFisik, capturedImagebyUriFisik, Modifier
-                                .fillMaxWidth(), "Kondisi Fisik",urlFisik.value
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        com.example.sipentas.view.form_assessment.FotoBox(
-                            showPermissionKk, capturedImagebyUriKk, Modifier
-                                .fillMaxWidth(0.5f), "KK",urlKk.value
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        com.example.sipentas.view.form_assessment.FotoBox(
-                            showPermissionKtp, capturedImagebyUriKtp, Modifier
-                                .fillMaxWidth(), "KTP",urlKtp.value
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
+       Scaffold(
+           topBar = {
+               Row(
+                   Modifier
+                       .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                       .fillMaxWidth(),
+                   horizontalArrangement = Arrangement.SpaceBetween,
+                   verticalAlignment = Alignment.CenterVertically
+               ) {
+                   IconButton(onClick = {
+                       navController.popBackStack()
+                   }) {
+                       Icon(
+                           painter = painterResource(id = R.drawable.back_icon),
+                           contentDescription = null,
+                           modifier = Modifier
+                               .size(16.dp),
+                           tint = Color.Black
+                       )
+                   }
+                   Text(
+                       text = "Detail Assesment",
+                       style = MaterialTheme.typography.titleMedium,
+                       color = Color.Black
+                   )
+                   Column(
+                       horizontalAlignment = Alignment.CenterHorizontally
+                   ) {
+                       Switch(checked =isEdit.value ,
+                           onCheckedChange = {isEdit.value = it},
+                           colors = SwitchDefaults.colors(
+                               checkedBorderColor = Color.Transparent,
+                               checkedThumbColor = Color.White,
+                               checkedTrackColor = Color(0xFF00A7C0),
+                               uncheckedBorderColor = Color.Transparent,
+                               uncheckedThumbColor = Color.White.copy(0.6f),
+                               uncheckedTrackColor = Color(0xFF8f8f8f)
+                           ),
+                           modifier = Modifier
+                               .scale(0.7f))
+                       Text(text = "Ubah",
+                           style = MaterialTheme.typography.bodyMedium,
+                           fontSize = 10.sp,
+                           color = Color(0xFF00A7C0),
+                           modifier = Modifier
+                               .offset(y= -10.dp))
+                   }
+               }
+           }
+       ) {
+           Surface(
+               Modifier
+                   .padding(it)
+                   .fillMaxSize(),
+               color = Color.White
+           ) {
+               Column(
+                   Modifier
+                       .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+                       .verticalScroll(scrollState)
+               ) {
+                   Row(
+                       Modifier
+                           .fillMaxWidth()
+                   ) {
+                       com.example.sipentas.view.form_assessment.FotoBox(
+                           showPermissionRumah, capturedImagebyUriRumah, Modifier
+                               .fillMaxWidth(0.5f), "Rumah",urlRumah.value
+                       )
+                       Spacer(modifier = Modifier.width(4.dp))
+                       com.example.sipentas.view.form_assessment.FotoBox(
+                           showPermissionFisik, capturedImagebyUriFisik, Modifier
+                               .fillMaxWidth(), "Kondisi Fisik",urlFisik.value
+                       )
+                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   Row(
+                       Modifier
+                           .fillMaxWidth()
+                   ) {
+                       com.example.sipentas.view.form_assessment.FotoBox(
+                           showPermissionKk, capturedImagebyUriKk, Modifier
+                               .fillMaxWidth(0.5f), "KK",urlKk.value
+                       )
+                       Spacer(modifier = Modifier.width(4.dp))
+                       com.example.sipentas.view.form_assessment.FotoBox(
+                           showPermissionKtp, capturedImagebyUriKtp, Modifier
+                               .fillMaxWidth(), "KTP",urlKtp.value
+                       )
+                   }
+                   Spacer(modifier = Modifier.height(14.dp))
 //                Pendidikan dan Sumber Kasus
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        DropdownField(
-                            pendidikan,
-                            modifier = Modifier.fillMaxWidth(0.5f),
-                            "Pendidikan",
-                            pendidikanString.value,
-                            isEnable = isEdit.value
-                        ) {
-                            dropDownCompose.DropDownPendidikan(expand = pendidikan) { item, id ->
-                                pendidikanString.value = item
-                                pendidikanInt.intValue = id
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        DropdownField(
-                            sumber,
-                            modifier = Modifier.fillMaxWidth(),
-                            "Sumber Kasus",
-                            sumberString.value,
-                            isEnable = isEdit.value
-                        ) {
-                            dropDownCompose.DropDownSumberKasus(expand = sumber) { item, id ->
-                                sumberString.value = item
-                                sumberInt.intValue = id
-                            }
-                        }
-                    }
-                    AnimatedVisibility(visible = pendidikanString.value.isEmpty() || sumberString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Pendidikan dan Sumber Kasus wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        DropdownField(
-                            pekerjaan,
-                            modifier = Modifier.fillMaxWidth(),
-                            "Pekerjaan",
-                            pekerjaanString.value,
-                            isEnable = isEdit.value
-                        ) {
-                            dropDownCompose.DropDownPekerjaan(expand = pekerjaan) { item, id ->
-                                pekerjaanString.value = item
-                                pekerjaanInt.intValue = id
-                            }
-                        }
-                    }
-                    AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Pekerjaan wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment",
-                        boolean = isEdit.value)
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = petugas,
-                        label = "Petugas",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
+                   Row(
+                       Modifier
+                           .fillMaxWidth()
+                   ) {
+                       DropdownField(
+                           pendidikan,
+                           modifier = Modifier.fillMaxWidth(0.5f),
+                           "Pendidikan",
+                           pendidikanString.value,
+                           isEnable = isEdit.value
+                       ) {
+                           dropDownCompose.DropDownPendidikan(expand = pendidikan) { item, id ->
+                               pendidikanString.value = item
+                               pendidikanInt.intValue = id
+                           }
+                       }
+                       Spacer(modifier = Modifier.width(4.dp))
+                       DropdownField(
+                           sumber,
+                           modifier = Modifier.fillMaxWidth(),
+                           "Sumber Kasus",
+                           sumberString.value,
+                           isEnable = isEdit.value
+                       ) {
+                           dropDownCompose.DropDownSumberKasus(expand = sumber) { item, id ->
+                               sumberString.value = item
+                               sumberInt.intValue = id
+                           }
+                       }
+                   }
+                   AnimatedVisibility(visible = sumberString.value.isEmpty()) {
+                       Column {
+                           Spacer(modifier = Modifier.height(6.dp))
+                           Text(
+                               text = "Sumber Kasus wajib diisi",
+                               fontSize = 10.sp,
+                               color = Color.Red
+                           )
+                       }
+                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   Row(
+                       Modifier
+                           .fillMaxWidth()
+                   ) {
+                       DropdownField(
+                           pekerjaan,
+                           modifier = Modifier.fillMaxWidth(),
+                           "Pekerjaan",
+                           pekerjaanString.value,
+                           isEnable = isEdit.value
+                       ) {
+                           dropDownCompose.DropDownPekerjaan(expand = pekerjaan) { item, id ->
+                               pekerjaanString.value = item
+                               pekerjaanInt.intValue = id
+                           }
+                       }
+                   }
+//                   AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
+//                       Column {
+//                           Spacer(modifier = Modifier.height(6.dp))
+//                           Text(
+//                               text = "* Pekerjaan wajib diisi",
+//                               fontSize = 10.sp,
+//                               color = Color.Red
+//                           )
+//                       }
+//                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment",
+                       boolean = isEdit.value)
+                   AnimatedVisibility(visible = tanggalLahir.value.isEmpty()) {
+                       Column {
+                           Spacer(modifier = Modifier.height(6.dp))
+                           Text(
+                               text = "* Tanggal Assesment wajib diisi",
+                               fontSize = 10.sp,
+                               color = Color.Red
+                           )
+                       }
+                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = petugas,
+                       label = "Petugas",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
 
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = dtks,
-                        label = "Status DTKS",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    DropdownField(
-                        statusOrtu,
-                        modifier = Modifier.fillMaxWidth(),
-                        "Status Orang Tua",
-                        statusOrtuString.value,
-                        isEnable = isEdit.value
-                    ) {
-                        dropDownCompose.DropDownStatusOrtu(expand = statusOrtu) { item, id ->
-                            statusOrtuString.value = item
-                            statusInt.intValue = id
-                        }
-                    }
-                    AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Status Orang Tua wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                    ) {
-                        DropdownField(
-                            pekerjaanOrtu,
-                            modifier = Modifier.fillMaxWidth(0.5f),
-                            "Pekerjaan Orang Tua",
-                            pekerjaanOrtuString.value,
-                            isEnable = isEdit.value
-                        ) {
-                            dropDownCompose.DropDownPekerjaan(expand = pekerjaanOrtu) { item, id ->
-                                pekerjaanOrtuString.value = item
-                                pekerjaanOrtuInt.intValue = id
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
-                        DropdownField(
-                            tempatTinggal,
-                            modifier = Modifier.fillMaxWidth(),
-                            "Tempat Tinggal",
-                            tempatTinggalString.value,
-                            isEnable = isEdit.value
-                        ) {
-                            dropDownCompose.DropDownTempatTinggal(expand = tempatTinggal) { item, id ->
-                                tempatTinggalString.value = item
-                                tempatTinggalInt.intValue = id
-                            }
-                        }
-                    }
-                    AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = namaBapak,
-                        label = "Nama Bapak",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = namaIbu,
-                        label = "Nama Ibu",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = nikIbu,
-                        label = "NIK Ibu",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value,
-                        keyboardType = KeyboardType.Number
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = namaWali,
-                        label = "Nama Wali",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = penghasilan,
-                        label = "Penghasilan",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        keyboardType = KeyboardType.Number,
-                        enabled = isEdit.value
-                    )
-                    Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
-                        textString = catatan,
-                        label = "Catatan",
-                        imeAction = ImeAction.Default,
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        enabled = isEdit.value
-                    )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = dtks,
+                       label = "Status DTKS",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   DropdownField(
+                       statusOrtu,
+                       modifier = Modifier.fillMaxWidth(),
+                       "Status Orang Tua",
+                       statusOrtuString.value,
+                       isEnable = isEdit.value
+                   ) {
+                       dropDownCompose.DropDownStatusOrtu(expand = statusOrtu) { item, id ->
+                           statusOrtuString.value = item
+                           statusInt.intValue = id
+                       }
+                   }
+//                   AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
+//                       Column {
+//                           Spacer(modifier = Modifier.height(6.dp))
+//                           Text(
+//                               text = "* Status Orang Tua wajib diisi",
+//                               fontSize = 10.sp,
+//                               color = Color.Red
+//                           )
+//                       }
+//                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   Row(
+                       Modifier
+                           .fillMaxWidth()
+                   ) {
+                       DropdownField(
+                           pekerjaanOrtu,
+                           modifier = Modifier.fillMaxWidth(0.5f),
+                           "Pekerjaan Orang Tua",
+                           pekerjaanOrtuString.value,
+                           isEnable = isEdit.value
+                       ) {
+                           dropDownCompose.DropDownPekerjaan(expand = pekerjaanOrtu) { item, id ->
+                               pekerjaanOrtuString.value = item
+                               pekerjaanOrtuInt.intValue = id
+                           }
+                       }
+                       Spacer(modifier = Modifier.width(4.dp))
+                       DropdownField(
+                           tempatTinggal,
+                           modifier = Modifier.fillMaxWidth(),
+                           "Tempat Tinggal",
+                           tempatTinggalString.value,
+                           isEnable = isEdit.value
+                       ) {
+                           dropDownCompose.DropDownTempatTinggal(expand = tempatTinggal) { item, id ->
+                               tempatTinggalString.value = item
+                               tempatTinggalInt.intValue = id
+                           }
+                       }
+                   }
+//                   AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
+//                       Column {
+//                           Spacer(modifier = Modifier.height(6.dp))
+//                           Text(
+//                               text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
+//                               fontSize = 10.sp,
+//                               color = Color.Red
+//                           )
+//                       }
+//                   }
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = namaBapak,
+                       label = "Nama Bapak",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = namaIbu,
+                       label = "Nama Ibu",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = nikIbu,
+                       label = "NIK Ibu",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value,
+                       keyboardType = KeyboardType.Number
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = namaWali,
+                       label = "Nama Wali",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = penghasilan,
+                       label = "Penghasilan",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       keyboardType = KeyboardType.Number,
+                       enabled = isEdit.value
+                   )
+                   Spacer(modifier = Modifier.height(14.dp))
+                   FilledTextField(
+                       textString = catatan,
+                       label = "Catatan",
+                       imeAction = ImeAction.Default,
+                       singleLine = true,
+                       modifier = Modifier
+                           .fillMaxWidth(),
+                       enabled = isEdit.value
+                   )
 //                    Foto
-                    Spacer(modifier = Modifier.height(14.dp))
-                    com.example.sipentas.view.form_assessment.PickPdfFile(
-                        urri = pdfUri,
-                        onPdfPicked = { uri ->
-                            pdfUri.value = uri
-                        })
-                    Spacer(modifier = Modifier.height(14.dp))
+                   Spacer(modifier = Modifier.height(14.dp))
+                   com.example.sipentas.view.form_assessment.PickPdfFile(
+                       urri = pdfUri,
+                       onPdfPicked = { uri ->
+                           pdfUri.value = uri
+                       })
+                   Spacer(modifier = Modifier.height(14.dp))
                    AnimatedVisibility(visible = isEdit.value) {
                        ButtonPrimary(text = {
                            Row(
@@ -854,12 +722,152 @@ fun DetailAssessmentView(
                            }
                        }
                    }
-                }
-            }
-        }
-    }
+               }
+           }
+       }
 
+       if (openCameraRumah.value) {
+           CameraView(
+               outputDirectory = outputRumah,
+               executor = cameraExecutorRumah,
+               closeCamera = {
+                   showPermissionRumah.value = false
+                   openCameraRumah.value = false
+                   cameraExecutorRumah.shutdown()
+               },
+               onImageCapture = { uri ->
+                   capturedImagebyUriRumah.value = uri
+                   showPermissionRumah.value = false
+                   openCameraRumah.value = false
+                   runBlocking {
+                       val file = File(capturedImagebyUriRumah.value?.path!!)
+                       val compressor = Compressor.compress(context, file) {
+                           default()
+                           destination(file)
+                       }
+                       val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                       val gambar = MultipartBody.Part.createFormData(
+                           "file",
+                           compressor.name,
+                           requestBody
+                       )
+                       asVm.addAssesmen(gambar) {
+                           urlRumah.value = it.file_url!!
+                       }
+                   }
+                   cameraExecutorRumah.shutdown()
+               },
+               onError = {
 
+               }
+           )
+       } else if (openCameraFisik.value) {
+           CameraView(
+               outputDirectory = outputFisik,
+               executor = cameraExecutorFisik,
+               closeCamera = {
+                   showPermissionFisik.value = false
+                   openCameraFisik.value = false
+                   cameraExecutorFisik.shutdown()
+               },
+               onImageCapture = { uri ->
+                   capturedImagebyUriFisik.value = uri
+                   showPermissionFisik.value = false
+                   openCameraFisik.value = false
+                   runBlocking {
+                       val file = File(capturedImagebyUriFisik.value?.path!!)
+                       val compressor = Compressor.compress(context, file) {
+                           default()
+                           destination(file)
+                       }
+                       val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                       val gambar = MultipartBody.Part.createFormData(
+                           "file",
+                           compressor.name,
+                           requestBody
+                       )
+                       asVm.addAssesmen(gambar) {
+                           urlFisik.value = it.file_url!!
+                       }
+                   }
+                   cameraExecutorFisik.shutdown()
+               },
+               onError = {
+
+               }
+           )
+       } else if (openCameraKk.value) {
+           CameraView(
+               outputDirectory = outputKk,
+               executor = cameraExecutorKk,
+               closeCamera = {
+                   showPermissionKk.value = false
+                   openCameraKk.value = false
+                   cameraExecutorKk.shutdown()
+               },
+               onImageCapture = { uri ->
+                   capturedImagebyUriKk.value = uri
+                   showPermissionKk.value = false
+                   openCameraKk.value = false
+                   runBlocking {
+                       val file = File(capturedImagebyUriKk.value?.path!!)
+                       val compressor = Compressor.compress(context, file) {
+                           default()
+                           destination(file)
+                       }
+                       val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                       val gambar = MultipartBody.Part.createFormData(
+                           "file",
+                           compressor.name,
+                           requestBody
+                       )
+                       asVm.addAssesmen(gambar) {
+                           urlKk.value = it.file_url!!
+                       }
+                   }
+                   cameraExecutorKk.shutdown()
+               },
+               onError = {
+
+               }
+           )
+       } else if (openCameraKtp.value) {
+           CameraView(
+               outputDirectory = outputKtp,
+               executor = cameraExecutorKtp,
+               closeCamera = {
+                   showPermissionKtp.value = false
+                   openCameraKtp.value = false
+                   cameraExecutorKtp.shutdown()
+               },
+               onImageCapture = { uri ->
+                   capturedImagebyUriKtp.value = uri
+                   showPermissionKtp.value = false
+                   openCameraKtp.value = false
+                   runBlocking {
+                       val file = File(capturedImagebyUriKtp.value?.path!!)
+                       val compressor = Compressor.compress(context, file) {
+                           default()
+                           destination(file)
+                       }
+                       val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                       val gambar = MultipartBody.Part.createFormData(
+                           "file",
+                           compressor.name,
+                           requestBody
+                       )
+                       asVm.addAssesmen(gambar) {
+                           urlKtp.value = it.file_url!!
+                       }
+                   }
+                   cameraExecutorKtp.shutdown()
+               },
+               onError = {
+
+               }
+           )
+       }
+   }
 }
 
 @Composable

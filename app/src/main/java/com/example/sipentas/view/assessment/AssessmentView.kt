@@ -114,39 +114,42 @@ fun AssessmentView(
                                         shape = RoundedCornerShape(6.dp),
                                         modifier = Modifier
                                             .clickable {
-                                                if (item.flag == 0) {
-                                                    navController.navigate(AppRoute.FormAssessment.route + "/${item.id_pm}")
-                                                } else if (item.flag == 1) {
-                                                    navController.navigate(
-                                                        AppRoute.DetailAssessment.route
-                                                                +"/${item.nama_pendidikan}"
-                                                                +"/${item.id_pendidikan}"
-                                                                +"/${item.nama_sumber_kasus}"
-                                                                +"/${item.id_sumber_kasus}"
-                                                                +"/${item.nama_pekerjaan}"
-                                                                +"/${item.id_pekerjaan}"
-                                                                +"/${if (!item.tanggal.isNullOrEmpty()) item.tanggal else "kosong"}"
-                                                                +"/${if (!item.petugas.isNullOrEmpty()) item.petugas else "kosong"}"
-                                                                +"/${if (!item.status_dtks.isNullOrEmpty()) item.status_dtks else "kosong"}"
-                                                                +"/${item.nama_status_ortu}"
-                                                                +"/${item.id_status_ortu}"
-                                                                +"/${item.nama_pekerjaan}"
-                                                                +"/${item.id_kerja_ortu}"
-                                                                +"/${item.nama_tempat_tinggal}"
-                                                                +"/${item.id_tempat_tinggal}"
-                                                                +"/${if (!item.nama_bpk.isNullOrEmpty()) item.nama_bpk else "kosong"}"
-                                                                +"/${if (!item.nama_ibu.isNullOrEmpty()) item.nama_ibu else "kosong"}"
-                                                                +"/${if (!item.nik_pm.isNullOrEmpty()) item.nik_pm else "0"}"
-                                                                +"/${if (!item.nama_wali.isNullOrEmpty()) item.nama_wali else "kosong"}"
-                                                                +"/${if (!item.penghasilan.isNullOrEmpty()) item.penghasilan else "kosong"}"
-                                                                +"/${if (!item.catatan.isNullOrEmpty()) item.catatan else "kosong"}"
-                                                                + "?urlRumah=${if (!item.foto_rumah.isNullOrEmpty()) item.foto_rumah else "0"}"
-                                                                + "?urlFisik=${if (!item.foto_kondisi_fisik.isNullOrEmpty()) item.foto_kondisi_fisik else "0"}"
-                                                                +"?urlKk=${if (!item.foto_kk.isNullOrEmpty()) item.foto_kk else "0"}"
-                                                                +"?urlKtp=${if (!item.foto_ktp.isNullOrEmpty()) item.foto_ktp else "0"}"
+                                              try {
+                                                  if (item.flag == 0) {
+                                                      navController.navigate(AppRoute.FormAssessment.route + "/${item.id_pm}")
+                                                  } else if (item.flag == 1) {
+                                                      navController.navigate(
+                                                          AppRoute.DetailAssessment.route
+                                                                  +"/${if (item.nama_pendidikan != null) item.nama_pendidikan else "0"}"
+                                                                  +"/${if (item.id_pendidikan != null) item.id_pendidikan else "0"}"
+                                                                  +"/${item.nama_sumber_kasus ?: "0"}"
+                                                                  +"/${item.id_sumber_kasus ?: "0"}"
+                                                                  +"/${if (!item.nama_pekerjaan.isNullOrEmpty()) item.nama_pekerjaan else "0"}"
+                                                                  +"/${if (item.id_pekerjaan != null) item.id_pekerjaan else "0"}"
+                                                                  +"/${if (!item.tanggal.isNullOrEmpty()) item.tanggal else "0"}"
+                                                                  +"/${if (!item.petugas.isNullOrEmpty()) item.petugas else "0"}"
+                                                                  +"/${if (!item.status_dtks.isNullOrEmpty()) item.status_dtks else "0"}"
+                                                                  +"/${if (item.nama_status_ortu.isNullOrEmpty()) item.nama_status_ortu else "0"}"
+                                                                  +"/${if(item.id_status_ortu != null) item.id_status_ortu else "0"}"
+                                                                  +"/${if (!item.nama_pekerjaan.isNullOrEmpty()) item.nama_pekerjaan else "0"}"
+                                                                  +"/${item.id_kerja_ortu ?: "0"}"
+                                                                  +"/${ if(!item.nama_tempat_tinggal.isNullOrEmpty()) item.nama_tempat_tinggal else "0"}"
+                                                                  +"/${item.id_tempat_tinggal ?: "0"}"
+                                                                  +"/${if (!item.nama_bpk.isNullOrEmpty())item.nama_bpk else "0"}"
+                                                                  +"/${if (!item.nama_ibu.isNullOrEmpty())  item.nama_ibu else "0"}"
+                                                                  +"/${if (!item.nik_pm.isNullOrEmpty()) item.nik_pm else "0"}"
+                                                                  +"/${if (!item.nama_wali.isNullOrEmpty()) item.nama_wali else "0"}"
+                                                                  +"/${if (!item.penghasilan.isNullOrEmpty()) item.penghasilan else "0"}"
+                                                                  +"/${if (!item.catatan.isNullOrEmpty()) item.catatan else "0"}"
+                                                                  + "?urlRumah=${if (!item.foto_rumah.isNullOrEmpty()) item.foto_rumah else "0"}"
+                                                                  + "?urlFisik=${if (!item.foto_kondisi_fisik.isNullOrEmpty()) item.foto_kondisi_fisik else "0"}"
+                                                                  +"?urlKk=${if (!item.foto_kk.isNullOrEmpty()) item.foto_kk else "0"}"
+                                                                  +"?urlKtp=${if (!item.foto_ktp.isNullOrEmpty()) item.foto_ktp else "0"}"
 
-                                                    )
-                                                }
+                                                      )
+                                                  }
+                                              } catch (e:Exception) {
+                                              }
                                             }
                                     ) {
                                         Row(

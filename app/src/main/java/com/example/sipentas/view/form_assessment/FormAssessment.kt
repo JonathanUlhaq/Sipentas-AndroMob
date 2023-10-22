@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -58,6 +59,7 @@ import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
+import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.assessment.AssesmenViewModel
@@ -290,84 +292,61 @@ fun FormAssessment(
             openCamera = openCameraKtp
         )
     }
+    val location = LocationProviders(context)
+    val locationPermission = remember {
+        mutableStateOf(false)
+    }
 
-    if (openCameraRumah.value) {
-        CameraView(
-            outputDirectory = outputRumah,
-            executor = cameraExecutorRumah,
-            closeCamera = {
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                cameraExecutorRumah.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriRumah.value = uri
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                cameraExecutorRumah.shutdown()
-            },
-            onError = {
+    if (locationPermission.value) {
+        location.LocationPermission(lat = lat, long = long).let {
+            location.getLastKnownLocation(success = {
+
+            }) {
 
             }
-        )
-    } else if (openCameraFisik.value) {
-        CameraView(
-            outputDirectory = outputFisik,
-            executor = cameraExecutorFisik,
-            closeCamera = {
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                cameraExecutorFisik.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriFisik.value = uri
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                cameraExecutorFisik.shutdown()
-            },
-            onError = {
+        }
 
+        if (!formWajib.value
+        ) {
+            asVm.addAssesmen(
+                AssesmentBody(
+                    catatan = catatan.value,
+                    foto_kk = urlKk.value,
+                    foto_kondisi_fisik = urlFisik.value,
+                    foto_ktp = urlKtp.value,
+                    foto_rumah = urlRumah.value,
+                    id_kerja_ortu = pekerjaanOrtuInt.intValue,
+                    id_lembaga = 1,
+                    id_pekerjaan = pekerjaanInt.intValue,
+                    id_pendidikan = pendidikanInt.intValue,
+                    id_pm = idUser.value.toInt(),
+                    id_status_ortu = statusInt.intValue,
+                    id_sumber_kasus = sumberInt.intValue,
+                    id_tempat_tgl = tempatTinggalInt.intValue,
+                    lat = lat.value,
+                    long = long.value,
+                    nama_bpk = if (namaBapak.value.isEmpty()) null else namaBapak.value,
+                    nama_ibu = if (namaIbu.value.isEmpty()) null else namaIbu.value,
+                    nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
+                    nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
+                    petugas = if (petugas.value.isEmpty()) null else petugas.value,
+                    status_dtks = if (dtks.value.isEmpty()) null else dtks.value ,
+                    tanggal = tanggalLahir.value,
+                    flag = 1
+                ),
+                onFailuer = {
+                    locationPermission.value = false
+                }
+            ) {
+                locationPermission.value = false
+                Toast.makeText(context,"Assesmen berhasil ditambahkan",Toast.LENGTH_SHORT).show()
+                navController.popBackStack()
             }
-        )
-    } else if (openCameraKk.value) {
-        CameraView(
-            outputDirectory = outputKk,
-            executor = cameraExecutorKk,
-            closeCamera = {
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                cameraExecutorKk.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKk.value = uri
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                cameraExecutorKk.shutdown()
-            },
-            onError = {
 
-            }
-        )
-    } else if (openCameraKtp.value) {
-        CameraView(
-            outputDirectory = outputKtp,
-            executor = cameraExecutorKtp,
-            closeCamera = {
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                cameraExecutorKtp.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKtp.value = uri
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                cameraExecutorKtp.shutdown()
-            },
-            onError = {
+        }
+    }
+    Box {
 
-            }
-        )
-    } else {
         Scaffold(
             topBar = {
                 Row(
@@ -510,6 +489,16 @@ fun FormAssessment(
                     }
                     Spacer(modifier = Modifier.height(14.dp))
                     DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment")
+                    AnimatedVisibility(visible = tanggalLahir.value.isEmpty()) {
+                        Column {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "* Tanggal Assesment wajib diisi",
+                                fontSize = 10.sp,
+                                color = Color.Red
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
                         textString = petugas,
@@ -519,7 +508,6 @@ fun FormAssessment(
                         modifier = Modifier
                             .fillMaxWidth()
                     )
-
                     Spacer(modifier = Modifier.height(14.dp))
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
@@ -674,49 +662,95 @@ fun FormAssessment(
                             )
                         }
                     }) {
-
                         if (!formWajib.value
-                            && urlKk.value.isNotEmpty()
-                            && urlRumah.value.isNotEmpty()
-                            && urlFisik.value.isNotEmpty()
-                            && urlKtp.value.isNotEmpty()
                         ) {
-                            asVm.addAssesmen(
-                                AssesmentBody(
-                                    catatan = catatan.value,
-                                    foto_kk = urlKk.value,
-                                    foto_kondisi_fisik = urlFisik.value,
-                                    foto_ktp = urlKtp.value,
-                                    foto_rumah = urlRumah.value,
-                                    id_kerja_ortu = pekerjaanOrtuInt.intValue,
-                                    id_lembaga = 1,
-                                    id_pekerjaan = pekerjaanInt.intValue,
-                                    id_pendidikan = pendidikanInt.intValue,
-                                    id_pm = idUser.value.toInt(),
-                                    id_status_ortu = statusInt.intValue,
-                                    id_sumber_kasus = sumberInt.intValue,
-                                    id_tempat_tgl = tempatTinggalInt.intValue,
-                                    lat = lat.value,
-                                    long = long.value,
-                                    nama_bpk = namaBapak.value,
-                                    nama_ibu = namaIbu.value,
-                                    nama_wali = namaWali.value,
-                                    nik_ibu = nikIbu.value,
-                                    petugas = petugas.value,
-                                    status_dtks = "status_dtks",
-                                    tanggal = tanggalLahir.value,
-                                    flag = 0
-                                )
-                            ) {}
+                            locationPermission.value = true
 
                         }
                     }
                 }
             }
         }
+
+
+        if (openCameraRumah.value) {
+            CameraView(
+                outputDirectory = outputRumah,
+                executor = cameraExecutorRumah,
+                closeCamera = {
+                    showPermissionRumah.value = false
+                    openCameraRumah.value = false
+                    cameraExecutorRumah.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriRumah.value = uri
+                    showPermissionRumah.value = false
+                    openCameraRumah.value = false
+                    cameraExecutorRumah.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraFisik.value) {
+            CameraView(
+                outputDirectory = outputFisik,
+                executor = cameraExecutorFisik,
+                closeCamera = {
+                    showPermissionFisik.value = false
+                    openCameraFisik.value = false
+                    cameraExecutorFisik.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriFisik.value = uri
+                    showPermissionFisik.value = false
+                    openCameraFisik.value = false
+                    cameraExecutorFisik.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraKk.value) {
+            CameraView(
+                outputDirectory = outputKk,
+                executor = cameraExecutorKk,
+                closeCamera = {
+                    showPermissionKk.value = false
+                    openCameraKk.value = false
+                    cameraExecutorKk.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriKk.value = uri
+                    showPermissionKk.value = false
+                    openCameraKk.value = false
+                    cameraExecutorKk.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraKtp.value) {
+            CameraView(
+                outputDirectory = outputKtp,
+                executor = cameraExecutorKtp,
+                closeCamera = {
+                    showPermissionKtp.value = false
+                    openCameraKtp.value = false
+                    cameraExecutorKtp.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriKtp.value = uri
+                    showPermissionKtp.value = false
+                    openCameraKtp.value = false
+                    cameraExecutorKtp.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        }
     }
-
-
 }
 
 @Composable

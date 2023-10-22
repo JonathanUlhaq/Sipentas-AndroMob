@@ -54,6 +54,7 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.component.NikFilledText
 import com.example.sipentas.models.PmUpdateBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
@@ -147,11 +148,11 @@ fun DetailView(
     }
 
     val agamaString = remember {
-        mutableStateOf(currentAgama)
+        mutableStateOf(if (currentAgama == "0") "" else currentAgama)
     }
 
     val provinsiString = remember {
-        mutableStateOf(currentProvinsi)
+        mutableStateOf(if (currentProvinsi == "0") "" else currentProvinsi)
     }
     val kabupatenString = remember {
         mutableStateOf(currentKabupaten)
@@ -187,7 +188,7 @@ fun DetailView(
         location.LocationPermission(lat = lat, long = long)
     }
     val keteranganPPks = remember {
-        mutableStateOf(ketPpks)
+        mutableStateOf(if (ketPpks == "0") "" else ketPpks)
     }
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
@@ -210,25 +211,25 @@ fun DetailView(
 
 
     val nik = remember {
-        mutableStateOf(currentNik)
+        mutableStateOf(if (currentNik == "0") "" else currentNik)
     }
     val tempatLahir = remember {
-        mutableStateOf(currentTempatLahir)
+        mutableStateOf(if (currentTempatLahir == "0") "" else currentTempatLahir)
     }
     val tanggalLahir = remember {
-        mutableStateOf(currentTanggalLahir)
+        mutableStateOf(if (currentTanggalLahir == "0") "" else currentTanggalLahir)
     }
     val nomorHandphone = remember {
-        mutableStateOf(currentNomorHandphone)
+        mutableStateOf(if (currentNomorHandphone == "0") "" else currentNomorHandphone)
     }
     val kecamatanString = remember {
-        mutableStateOf(currentKecamatan)
+        mutableStateOf(if (currentKecamatan == "0")"" else currentKecamatan)
     }
     val kelurahanString = remember {
-        mutableStateOf(currentKelurahan)
+        mutableStateOf(if (currentKelurahan == "0")"" else currentKecamatan)
     }
     val namaJalan = remember {
-        mutableStateOf(currentJalan)
+        mutableStateOf(if (currentJalan == "0") "" else currentJalan)
     }
     val kabupatenId = remember {
         mutableIntStateOf(currentKabupId.toInt())
@@ -262,43 +263,8 @@ fun DetailView(
             || provinsiString.value.isEmpty()
             || kabupatenString.value.isEmpty()
 
+    Box {
 
-    if (openCamera.value) {
-        CameraView(
-            outputDirectory = output,
-            executor = cameraExecutor,
-            closeCamera = {
-                showPermission.value = false
-                openCamera.value = false
-                cameraExecutor.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUri.value = uri
-                showPermission.value = false
-                openCamera.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUri.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    vm.postPhoto(gambar, onError = {}) {
-                        urlFoto.value = it.file_url!!
-                    }
-                }
-                cameraExecutor.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else {
         Scaffold(
             topBar = {
                 Row(
@@ -390,7 +356,7 @@ fun DetailView(
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )
-                            } else if (!fotoDiri.isEmpty() || fotoDiri != "0") {
+                            } else if (!fotoDiri.isEmpty() || fotoDiri == "0" || fotoDiri == "url") {
                                 AsyncImage(model = fotoDiri,
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
@@ -507,7 +473,7 @@ fun DetailView(
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
+                    NikFilledText(
                         textString = nik,
                         label = "NIK",
                         imeAction = ImeAction.Default,
@@ -704,29 +670,29 @@ fun DetailView(
                                 }
                             }) {
                                 vm.updatePm(id = id_pm.toInt(), body = PmUpdateBody(
-                                    date_of_birth = tanggalLahir.value,
-                                    flag = 0,
+                                    date_of_birth = if (tanggalLahir.value.isEmpty()) null else tanggalLahir.value,
+                                    flag = null,
                                     foto_diri = urlFoto.value,
                                     gender = kelaminString.value,
                                     kabupaten_id = kabupatenId.value,
-                                    kecamatan_id = kecamatanId.value,
-                                    kelurahan_id = kelurahanId.value,
-                                    ket_ppks = keteranganPPks.value,
+                                    kecamatan_id = if (kecamatanId.value.equals(0)) null else kecamatanId.value,
+                                    kelurahan_id = if (kelurahanId.value.equals(0L)) null else kelurahanId.value,
+                                    ket_ppks = if (keteranganPPks.value.isEmpty()) null else keteranganPPks.value,
                                     kluster_id = kategoriPpksInt.value,
-                                    kode_pos = "5778",
-                                    nama_jalan = namaJalan.value,
+                                    kode_pos = null,
+                                    nama_jalan = if (namaJalan.value.isEmpty()) null else namaJalan.value,
                                     name = nama.value,
-                                    nik = nik.value,
-                                    phone_number = nomorHandphone.value,
-                                    place_of_birth = tempatLahir.value,
-                                    provinsi_id = provinsiInt.value,
+                                    nik = if (nik.value.isEmpty()) "" else nik.value,
+                                    phone_number = if (nomorHandphone.value.isEmpty()) "" else nomorHandphone.value,
+                                    place_of_birth = if (tempatLahir.value.isEmpty()) "" else tempatLahir.value,
+                                    provinsi_id = if (provinsiInt.intValue.equals(0)) null else provinsiInt.intValue,
                                     ragam_id = ragamId.intValue,
-                                    religion = agamaId.value,
+                                    religion = if (agamaId.intValue.equals(0)) null else agamaId.intValue,
                                     satker_id = 9
                                 ), onError = {
 
                                 } ) {
-                                        Toast.makeText(context,"Data berhasil diubah",Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context,"Data berhasil diubah",Toast.LENGTH_SHORT).show()
                                     navController.popBackStack()
                                 }
                             }
@@ -736,7 +702,44 @@ fun DetailView(
                 }
             }
         }
+
+
+
+        if (openCamera.value) {
+            CameraView(
+                outputDirectory = output,
+                executor = cameraExecutor,
+                closeCamera = {
+                    showPermission.value = false
+                    openCamera.value = false
+                    cameraExecutor.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUri.value = uri
+                    showPermission.value = false
+                    openCamera.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUri.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        vm.postPhoto(gambar, onError = {}) {
+                            urlFoto.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutor.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        }
     }
-
-
 }

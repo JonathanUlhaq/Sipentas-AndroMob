@@ -227,16 +227,16 @@ fun AllInFormView(
         mutableStateOf("")
     }
     val urlKk = remember {
-        mutableStateOf("")
+        mutableStateOf("url")
     }
     val urlAtensi = remember {
-        mutableStateOf("")
+        mutableStateOf("url")
     }
     val urlKtp = remember {
-        mutableStateOf("")
+        mutableStateOf("url")
     }
     val urlRumah = remember {
-        mutableStateOf("")
+        mutableStateOf("url")
     }
 
     val idUser = remember {
@@ -262,7 +262,9 @@ fun AllInFormView(
     val idAssesment = remember {
         mutableIntStateOf(0)
     }
-
+val pmAssesmen = remember {
+    mutableStateOf("url")
+}
     if (showPermissionAtensi.value) {
         RequestCameraPermission(
             context = context,
@@ -271,201 +273,9 @@ fun AllInFormView(
     }
     val outputAtensi: File = getOutputDirectory(context)
     val cameraExecutorAtensi = Executors.newSingleThreadExecutor()
-    if (openCamera.value) {
-        CameraView(
-            outputDirectory = output,
-            executor = cameraExecutor,
-            closeCamera = {
-                showPermission.value = false
-                openCamera.value = false
-                cameraExecutor.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUri.value = uri
-                showPermission.value = false
-                openCamera.value = false
-                cameraExecutor.shutdown()
-            },
-            onError = {
 
-            }
-        )
-    } else if (openCameraRumah.value) {
-        CameraView(
-            outputDirectory = outputRumah,
-            executor = cameraExecutorRumah,
-            closeCamera = {
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                cameraExecutorRumah.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriRumah.value = uri
-                showPermissionRumah.value = false
-                openCameraRumah.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriRumah.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlRumah.value = it.file_url!!
-                    }
-                }
-                cameraExecutorRumah.shutdown()
-            },
-            onError = {
+    Box {
 
-            }
-        )
-    } else if (openCameraFisik.value) {
-        CameraView(
-            outputDirectory = outputFisik,
-            executor = cameraExecutorFisik,
-            closeCamera = {
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                cameraExecutorFisik.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriFisik.value = uri
-                showPermissionFisik.value = false
-                openCameraFisik.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriFisik.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlFisik.value = it.file_url!!
-                    }
-                }
-                cameraExecutorFisik.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else if (openCameraKk.value) {
-        CameraView(
-            outputDirectory = outputKk,
-            executor = cameraExecutorKk,
-            closeCamera = {
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                cameraExecutorKk.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKk.value = uri
-                showPermissionKk.value = false
-                openCameraKk.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriKk.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlKk.value = it.file_url!!
-                    }
-                }
-                cameraExecutorKk.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else if (openCameraKtp.value) {
-        CameraView(
-            outputDirectory = outputKtp,
-            executor = cameraExecutorKtp,
-            closeCamera = {
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                cameraExecutorKtp.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriKtp.value = uri
-                showPermissionKtp.value = false
-                openCameraKtp.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriKtp.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlKtp.value = it.file_url!!
-                    }
-                }
-                cameraExecutorKtp.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else if (openCameraAtensi.value) {
-        CameraView(
-            outputDirectory = outputAtensi,
-            executor = cameraExecutorAtensi,
-            closeCamera = {
-                showPermissionAtensi.value = false
-                openCameraAtensi.value = false
-                runBlocking {
-                    val file = File(capturedImagebyUriAtensi.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-                    asVm.addAssesmen(gambar) {
-                        urlAtensi.value = it.file_url!!
-                    }
-                }
-                cameraExecutorAtensi.shutdown()
-            },
-            onImageCapture = { uri ->
-                capturedImagebyUriAtensi.value = uri
-                showPermissionAtensi.value = false
-                openCameraAtensi.value = false
-                cameraExecutorAtensi.shutdown()
-            },
-            onError = {
-
-            }
-        )
-    } else {
         Scaffold(
             containerColor = Color(0xFF00A7C0),
             topBar = {
@@ -532,24 +342,24 @@ fun AllInFormView(
                                     modifier = Modifier
                                         .clickable {
 
-                                            runBlocking {
-                                                when (index) {
-                                                    0 -> {
-                                                        if (checkListPm.value) {
-                                                            pagerState.scrollToPage(0)
-                                                            currentIndex.intValue = index
-                                                        }
-                                                    }
-
-                                                    1 -> {
-                                                        if (checkListAssesment.value || checkListPm.value) {
-                                                            pagerState.scrollToPage(1)
-                                                            currentIndex.intValue = index
-                                                        }
-                                                    }
-                                                }
-
-                                            }
+//                                            runBlocking {
+//                                                when (index) {
+//                                                    0 -> {
+//                                                        if (checkListPm.value) {
+//                                                            pagerState.scrollToPage(0)
+//                                                            currentIndex.intValue = index
+//                                                        }
+//                                                    }
+//
+//                                                    1 -> {
+//                                                        if (checkListAssesment.value || checkListPm.value) {
+//                                                            pagerState.scrollToPage(1)
+//                                                            currentIndex.intValue = index
+//                                                        }
+//                                                    }
+//                                                }
+//
+//                                            }
                                         }
                                 ) {
                                     Surface(
@@ -620,7 +430,8 @@ fun AllInFormView(
                                         vm = vm,
                                         asVm = asVm,
                                         lat = lat,
-                                        long = long
+                                        long = long,
+                                        url = pmAssesmen.value
                                     ) {
                                         Toast.makeText(context,"Penambahan PM berhasil",Toast.LENGTH_SHORT).show()
                                         idUser.value = it.data?.id.toString()
@@ -685,9 +496,219 @@ fun AllInFormView(
 
             }
         }
+
+        if (openCamera.value) {
+            CameraView(
+                outputDirectory = output,
+                executor = cameraExecutor,
+                closeCamera = {
+                    showPermission.value = false
+                    openCamera.value = false
+                    cameraExecutor.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUri.value = uri
+                    showPermission.value = false
+                    openCamera.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUri.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            pmAssesmen.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutor.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraRumah.value) {
+            CameraView(
+                outputDirectory = outputRumah,
+                executor = cameraExecutorRumah,
+                closeCamera = {
+                    showPermissionRumah.value = false
+                    openCameraRumah.value = false
+                    cameraExecutorRumah.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriRumah.value = uri
+                    showPermissionRumah.value = false
+                    openCameraRumah.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriRumah.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            urlRumah.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutorRumah.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraFisik.value) {
+            CameraView(
+                outputDirectory = outputFisik,
+                executor = cameraExecutorFisik,
+                closeCamera = {
+                    showPermissionFisik.value = false
+                    openCameraFisik.value = false
+                    cameraExecutorFisik.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriFisik.value = uri
+                    showPermissionFisik.value = false
+                    openCameraFisik.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriFisik.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            urlFisik.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutorFisik.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraKk.value) {
+            CameraView(
+                outputDirectory = outputKk,
+                executor = cameraExecutorKk,
+                closeCamera = {
+                    showPermissionKk.value = false
+                    openCameraKk.value = false
+                    cameraExecutorKk.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriKk.value = uri
+                    showPermissionKk.value = false
+                    openCameraKk.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriKk.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            urlKk.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutorKk.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraKtp.value) {
+            CameraView(
+                outputDirectory = outputKtp,
+                executor = cameraExecutorKtp,
+                closeCamera = {
+                    showPermissionKtp.value = false
+                    openCameraKtp.value = false
+                    cameraExecutorKtp.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriKtp.value = uri
+                    showPermissionKtp.value = false
+                    openCameraKtp.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriKtp.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            urlKtp.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutorKtp.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        } else if (openCameraAtensi.value) {
+            CameraView(
+                outputDirectory = outputAtensi,
+                executor = cameraExecutorAtensi,
+                closeCamera = {
+                    showPermissionAtensi.value = false
+                    openCameraAtensi.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriAtensi.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmen(gambar) {
+                            urlAtensi.value = it.file_url!!
+                        }
+                    }
+                    cameraExecutorAtensi.shutdown()
+                },
+                onImageCapture = { uri ->
+                    capturedImagebyUriAtensi.value = uri
+                    showPermissionAtensi.value = false
+                    openCameraAtensi.value = false
+                    cameraExecutorAtensi.shutdown()
+                },
+                onError = {
+
+                }
+            )
+        }
     }
-
-
 }
 
 @Composable
@@ -835,6 +856,16 @@ fun AtensiForm(
         )
         Spacer(modifier = Modifier.height(14.dp))
         DatePicker(context = context, date = tanggalAtensi, label = "Tanggal Atensi")
+        AnimatedVisibility(visible = tanggalAtensi.value.isEmpty()) {
+            Column {
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = "* Tanggal Atensi wajib diisi",
+                    fontSize = 10.sp,
+                    color = Color.Red
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(14.dp))
         DropdownField(kategoriPpks = pendekatanAtens ,
             label = "Pendekatan Atensi" ,
@@ -883,14 +914,14 @@ fun AtensiForm(
             vm.addAtensi(
                 AtensiBody(
                     foto = urlAtensi,
-                    id_assesment = idAssesmen,
+                    id_assesment = idAssesmen.toInt(),
                     id_jenis =idJenis.intValue,
                     id_pendekatan = idPendekatan.intValue,
                     id_pm = idUser.toInt(),
                     jenis = jenis.value,
-                    lat = lat,
-                    long = long,
-                    nilai = nilai.value.toLong(),
+                    lat = "0",
+                    long = "0",
+                    nilai = if (nilai.value.isEmpty()) "0".toLong() else nilai.value.toLong(),
                     penerima = penerima.value,
                     tanggal = tanggalAtensi.value
                 )
@@ -1029,13 +1060,7 @@ fun FormAssesment(
         mutableStateOf(false)
     }
 
-    formWajib.value = pendidikanString.value.isEmpty()
-            || sumberString.value.isEmpty()
-            || pekerjaanString.value.isEmpty()
-            || statusOrtuString.value.isEmpty()
-            || pekerjaanOrtuString.value.isEmpty()
-            || tempatTinggalString.value.isEmpty()
-
+    formWajib.value = sumberString.value.isEmpty()
     val dropDownCompose = DropdownCompose(vm, asVm)
 
     Column(
@@ -1102,11 +1127,11 @@ fun FormAssesment(
                 }
             }
         }
-        AnimatedVisibility(visible = pendidikanString.value.isEmpty() || sumberString.value.isEmpty()) {
+        AnimatedVisibility(visible = sumberString.value.isEmpty()) {
             Column {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "* Pendidikan dan Sumber Kasus wajib diisi",
+                    text = "* Sumber Kasus wajib diisi",
                     fontSize = 10.sp,
                     color = Color.Red
                 )
@@ -1129,18 +1154,28 @@ fun FormAssesment(
                 }
             }
         }
-        AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
+//        AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Pekerjaan wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
+        Spacer(modifier = Modifier.height(14.dp))
+        DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment")
+        AnimatedVisibility(visible = tanggalLahir.value.isEmpty()) {
             Column {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "* Pekerjaan wajib diisi",
+                    text = "* Tanggal Assesment wajib diisi",
                     fontSize = 10.sp,
                     color = Color.Red
                 )
             }
         }
-        Spacer(modifier = Modifier.height(14.dp))
-        DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment")
         Spacer(modifier = Modifier.height(14.dp))
         FilledTextField(
             textString = petugas,
@@ -1173,16 +1208,16 @@ fun FormAssesment(
                 statusInt.intValue = id
             }
         }
-        AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
-            Column {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "* Status Orang Tua wajib diisi",
-                    fontSize = 10.sp,
-                    color = Color.Red
-                )
-            }
-        }
+//        AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Status Orang Tua wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
         Spacer(modifier = Modifier.height(14.dp))
         Row(
             Modifier
@@ -1212,16 +1247,16 @@ fun FormAssesment(
                 }
             }
         }
-        AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
-            Column {
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
-                    fontSize = 10.sp,
-                    color = Color.Red
-                )
-            }
-        }
+//        AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
         Spacer(modifier = Modifier.height(14.dp))
         FilledTextField(
             textString = namaBapak,
@@ -1307,10 +1342,6 @@ fun FormAssesment(
         }) {
 
             if (!formWajib.value
-                && urlKk.isNotEmpty()
-                && urlRumah.isNotEmpty()
-                && urlFisik.isNotEmpty()
-                && urlKtp.isNotEmpty()
             ) {
                 asVm.addAssesmen(
                     AssesmentBody(
@@ -1319,24 +1350,24 @@ fun FormAssesment(
                         foto_kondisi_fisik = urlFisik,
                         foto_ktp = urlKtp,
                         foto_rumah = urlRumah,
-                        id_kerja_ortu = pekerjaanOrtuInt.intValue,
+                        id_kerja_ortu = if (pekerjaanOrtuInt.intValue.equals(0)) null else pekerjaanOrtuInt.intValue,
                         id_lembaga = 1,
-                        id_pekerjaan = pekerjaanInt.intValue,
-                        id_pendidikan = pendidikanInt.intValue,
+                        id_pekerjaan = if (pekerjaanInt.intValue.equals(0)) null else pekerjaanInt.intValue,
+                        id_pendidikan = if (pendidikanInt.intValue.equals(0)) null else pendidikanInt.intValue,
                         id_pm = idUser.toInt(),
-                        id_status_ortu = statusInt.intValue,
+                        id_status_ortu = if (statusInt.intValue.equals(0)) null else statusInt.intValue,
                         id_sumber_kasus = sumberInt.intValue,
-                        id_tempat_tgl = tempatTinggalInt.intValue,
+                        id_tempat_tgl = if (tempatTinggalInt.intValue.equals(0)) null else tempatTinggalInt.intValue,
                         lat = lat,
                         long = long,
-                        nama_bpk = namaBapak.value,
-                        nama_ibu = namaIbu.value,
-                        nama_wali = namaWali.value,
-                        nik_ibu = nikIbu.value,
-                        petugas = petugas.value,
-                        status_dtks = "status_dtks",
+                        nama_bpk = if (namaBapak.value.isEmpty()) null else namaBapak.value,
+                        nama_ibu = if (namaIbu.value.isEmpty()) null else namaIbu.value,
+                        nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
+                        nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
+                        petugas = if (petugas.value.isEmpty()) null else petugas.value,
+                        status_dtks = if (dtks.value.isEmpty()) null else dtks.value ,
                         tanggal = tanggalLahir.value,
-                        flag = 0
+                        flag = 1
                     )
                 ) {
                     onSuccess.invoke(it)

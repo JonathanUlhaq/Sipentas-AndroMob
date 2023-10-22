@@ -45,6 +45,7 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.component.NikFilledText
 import com.example.sipentas.models.AddPmResponse
 import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.utils.DropdownCompose
@@ -69,6 +70,7 @@ fun FormAddPm(
     asVm:AssesmenViewModel,
     lat:MutableState<String>,
     long:MutableState<String>,
+    url:String = "url",
     onAction: (AddPmResponse) -> Unit
 
 ) {
@@ -139,6 +141,8 @@ fun FormAddPm(
         mutableStateOf("")
     }
 
+
+
     val location = LocationProviders(context)
 
     val dropCompose = DropdownCompose(vm,asVm)
@@ -205,47 +209,34 @@ fun FormAddPm(
             }) {
 
             }
-            if (capturedImagebyUri.value?.path != null && !formWajib.value) {
+            if (!formWajib.value) {
                 runBlocking {
-                    val file = File(capturedImagebyUri.value?.path!!)
-                    val compressor = Compressor.compress(context, file) {
-                        default()
-                        destination(file)
-                    }
-                    val requestBody = compressor.asRequestBody("image/*".toMediaType())
-                    val gambar = MultipartBody.Part.createFormData(
-                        "file",
-                        compressor.name,
-                        requestBody
-                    )
-
-                    vm.postPhoto(gambar, onError = {locationPermission.value = false}) {
                         vm.addPm(
                             PostPmModel(
                                 name = nama.value,
-                                date_of_birth = tanggalLahir.value,
-                                foto_diri = it.file_url!!,
+                                date_of_birth = if (tanggalLahir.value.isEmpty()) null else tanggalLahir.value,
+                                foto_diri = url,
                                 gender = kelaminString.value,
                                 kabupaten_id = kabupatenId.intValue,
-                                kecamatan_id = kecamatanId.intValue,
-                                kelurahan_id = kelurahanId.longValue,
-                                ket_ppks = keteranganPPks.value,
+                                kecamatan_id = if (kecamatanId.intValue.equals(0)) null else kecamatanId.intValue,
+                                kelurahan_id = if (kelurahanId.longValue.equals(0L)) null else kelurahanId.longValue,
+                                ket_ppks = if (keteranganPPks.value.isEmpty()) null else keteranganPPks.value,
                                 kluster_id = kategoriPpksInt.intValue,
-                                kode_pos = "57716",
-                                nama_jalan = namaJalan.value,
-                                nik = nik.value,
-                                phone_number = nomorHandphone.value,
-                                place_of_birth = tempatLahir.value,
+                                kode_pos = null,
+                                nama_jalan = if (namaJalan.value.isEmpty()) null else namaJalan.value,
+                                nik = if (nik.value.isEmpty()) null else nik.value,
+                                phone_number = if (nomorHandphone.value.isEmpty()) null else nomorHandphone.value,
+                                place_of_birth = if (tempatLahir.value.isEmpty()) null else tempatLahir.value ,
                                 provinsi_id = provinsiInt.intValue,
                                 ragam_id = ragamId.intValue,
-                                religion = agamaId.intValue,
+                                religion = if (agamaId.intValue.equals(0))null else agamaId.intValue,
                                 satker_id = 9
                             )
                             , onError = {locationPermission.value = false}) {
                             onAction.invoke( it)
                         }
 
-                    }
+
                 }
             }
         }
@@ -380,7 +371,7 @@ fun FormAddPm(
             }
         }
         Spacer(modifier = Modifier.height(14.dp))
-        FilledTextField(
+        NikFilledText(
             textString = nik,
             label = "NIK",
             imeAction = ImeAction.Default,
@@ -521,7 +512,7 @@ fun FormAddPm(
         ) {
             dropCompose.DropDownKelurahan(expand = kelurahan) { string, id ->
                 kelurahanString.value = string
-                kelurahanId.longValue = id
+                kelurahanId.longValue = id.toLong()
             }
         }
         Spacer(modifier = Modifier.height(14.dp))
@@ -553,7 +544,9 @@ fun FormAddPm(
                 )
             }
         }) {
-            locationPermission.value = true
+            if (!formWajib.value) {
+                locationPermission.value = true
+            }
 
         }
     }

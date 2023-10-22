@@ -184,7 +184,7 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 + "/{penerima}"
                 + "/{nik}"
                 + "/{petugas}"
-
+                + "/{tanggal}"
         ) {
             showBottomBar.value = false
             DetailAtens(navController = navController,
@@ -193,7 +193,8 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 idAssesmen = it.arguments?.getString("idAssesmen")!!,
                 penerimaNama = it.arguments?.getString("penerima")!!,
                 nik = it.arguments?.getString("nik")!!,
-                petugas = it.arguments?.getString("petugas")!!
+                petugas = it.arguments?.getString("petugas")!!,
+                tanggal = it.arguments?.getString("tanggal")!!
 
             )
 
@@ -237,10 +238,10 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 navController = navController,
                 assesmenViewModel,
                 formPmViewModel,
-                urlRumah = it.arguments?.getString("urlRumah")!!,
-                urlFisik = it.arguments?.getString("urlFisik")!!,
-                urlKk = it.arguments?.getString("urlKk")!!,
-                urlKtp = it.arguments?.getString("urlKtp")!!,
+                urlRumahs = it.arguments?.getString("urlRumah")!!,
+                urlFisiks = it.arguments?.getString("urlFisik")!!,
+                urlKks = it.arguments?.getString("urlKk")!!,
+                urlKtps = it.arguments?.getString("urlKtp")!!,
                 curPendidikan = it.arguments?.getString("pendidikan")!!,
                 curPendidikanId = it.arguments?.getString("pendidikanId")!!,
                 curSumber = it.arguments?.getString("sumber")!!,

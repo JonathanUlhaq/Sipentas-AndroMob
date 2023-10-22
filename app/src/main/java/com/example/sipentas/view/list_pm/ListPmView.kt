@@ -149,33 +149,37 @@ private fun ListPmItem(
         modifier = Modifier
             .clip(RoundedCornerShape(6.dp))
             .clickable {
-                navController.navigate(
-                    AppRoute.DetailPm.route
-                            + "/${item.nama_ragam}"
-                            + "/${if (!item.id_kelurahan.isNullOrEmpty()) item.id_kelurahan else "0"}"
-                            + "/${item.id}"
-                            + "/${item.id_agama}"
-                            + "/${item.id_ragam}"
-                            + "/${item.name}"
-                            + "/${item.gender}"
-                            + "/${item.agama}"
-                            + "/${item.nama_provinsi}"
-                            + "/${item.nama_kabupaten}"
-                            + "/${item.nama_kluster}"
-                            + "/${item.id_kluster}"
-                            + "/${item.id_provinsi}"
-                            + "/${if (!item.ket_ppks.isNullOrEmpty()) item.ket_ppks else "0"}"
-                            + "/${if (!item.place_of_birth.isNullOrEmpty()) item.place_of_birth else "0"}"
-                            + "/${if (!item.date_of_birth.isNullOrEmpty()) item.date_of_birth else "0"}"
-                            + "/${if (!item.phone_number.isNullOrEmpty()) item.phone_number else "0"}"
-                            + "/${if (!item.nik.isNullOrEmpty()) item.nik else "0"}"
-                            + "/${if (!item.nama_kelurahan.isNullOrEmpty()) item.nama_kelurahan else "0"}"
-                            + "/${if (!item.id_kecamatan.isNullOrEmpty()) item.id_kecamatan else "0"}"
-                            + "/${if (!item.nama_kecamatan.isNullOrEmpty()) item.nama_kecamatan else "0"}"
-                            + "/${if (!item.id_kabupaten.isNullOrEmpty()) item.id_kabupaten else "0"}"
-                            + "/${if (!item.nama_jalan.isNullOrEmpty()) item.nama_jalan else "0"}"
-                            + "?foto_diri=${if (!item.foto_diri.isNullOrEmpty()) item.foto_diri else "0"}"
-                )
+               try {
+                   navController.navigate(
+                       AppRoute.DetailPm.route
+                               + "/${item.nama_ragam}"
+                               + "/${if (!item.id_kelurahan.isNullOrEmpty()) item.id_kelurahan else "0"}"
+                               + "/${item.id}"
+                               + "/${item.id_agama}"
+                               + "/${item.id_ragam}"
+                               + "/${item.name}"
+                               + "/${item.gender}"
+                               + "/${item.agama}"
+                               + "/${item.nama_provinsi}"
+                               + "/${item.nama_kabupaten}"
+                               + "/${item.nama_kluster}"
+                               + "/${item.id_kluster}"
+                               + "/${item.id_provinsi}"
+                               + "/${if (!item.ket_ppks.isNullOrEmpty()) item.ket_ppks else "0"}"
+                               + "/${if (!item.place_of_birth.isNullOrEmpty()) item.place_of_birth else "0"}"
+                               + "/${if (!item.date_of_birth.isNullOrEmpty()) item.date_of_birth else "0"}"
+                               + "/${if (!item.phone_number.isNullOrEmpty()) item.phone_number else "0"}"
+                               + "/${if (!item.nik.isNullOrEmpty()) item.nik else "0"}"
+                               + "/${if (!item.nama_kelurahan.isNullOrEmpty()) item.nama_kelurahan else "0"}"
+                               + "/${if (!item.id_kecamatan.isNullOrEmpty()) item.id_kecamatan else "0"}"
+                               + "/${if (!item.nama_kecamatan.isNullOrEmpty()) item.nama_kecamatan else "0"}"
+                               + "/${if (!item.id_kabupaten.isNullOrEmpty()) item.id_kabupaten else "0"}"
+                               + "/${if (!item.nama_jalan.isNullOrEmpty()) item.nama_jalan else "0"}"
+                               + "?foto_diri=${if (!item.foto_diri.isNullOrEmpty()) item.foto_diri else "url"}"
+                   )
+               } catch (e:Exception) {
+
+               }
             }
     ) {
         Row(
@@ -189,7 +193,7 @@ private fun ListPmItem(
                 modifier = Modifier
                     .size(width = 80.dp, height = 44.dp)
             ) {
-               if (item.foto_diri.isNullOrEmpty()) {
+               if (item.foto_diri.isNullOrEmpty() || item.foto_diri == "0" || item.foto_diri == "url") {
                    Image(
                        painter = painterResource(id = R.drawable.gambar_person),
                        contentDescription = null,

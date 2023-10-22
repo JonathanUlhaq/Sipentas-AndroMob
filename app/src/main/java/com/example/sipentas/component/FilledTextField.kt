@@ -79,3 +79,64 @@ fun FilledTextField(
 
     )
 }
+
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun NikFilledText(
+    textString: MutableState<String>,
+    label: String,
+    minHeight: Dp = TextFieldDefaults.MinHeight,
+    textColor:Color = Color(0xFF434343),
+    backgroundColor:Color = Color(0xFFE8E8E8),
+    labelColor:Color = Color(0xFF8f8f8f),
+    keyboardType: KeyboardType = KeyboardType.Text,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    singleLine: Boolean = true,
+    imeAction: ImeAction = ImeAction.Done,
+    enabled:Boolean = true,
+    modifier: Modifier = Modifier.fillMaxWidth(),
+    trailingIcon: @Composable () -> Unit = {}
+) {
+    val maxLength = 16
+    TextField(
+        value = textString.value,
+        onValueChange = { string ->
+            if (string.length <= maxLength)  textString.value = string
+        },
+        modifier = modifier
+            .defaultMinSize(minHeight = minHeight)
+        ,
+        colors = TextFieldDefaults.textFieldColors(
+            disabledIndicatorColor = Color.Transparent,
+            errorIndicatorColor = Color.Transparent,
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent,
+            containerColor =backgroundColor ,
+            unfocusedLabelColor = labelColor,
+            textColor = textColor,
+            focusedTrailingIconColor = labelColor,
+            unfocusedTrailingIconColor = labelColor,
+            cursorColor = labelColor,
+            disabledTextColor = textColor,
+            disabledLabelColor = labelColor
+
+        ),
+        shape = RoundedCornerShape(12.dp),
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        trailingIcon = {
+            trailingIcon.invoke()
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        visualTransformation = visualTransformation,
+        singleLine = singleLine,
+        enabled = enabled,
+        textStyle = MaterialTheme.typography.bodyMedium,
+
+        )
+}

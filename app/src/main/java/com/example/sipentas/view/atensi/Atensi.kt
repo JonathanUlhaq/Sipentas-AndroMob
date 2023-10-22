@@ -1,5 +1,6 @@
 package com.example.sipentas.view.atensi
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -102,15 +103,20 @@ fun Atensi(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(6.dp))
                                             .clickable {
-                                                navController.navigate(
-                                                    AppRoute.DetailAtensi.route
-                                                            + "/${if (item.id_pm != null) item.id_pm else "0"}"
-                                                            + "/${if (item.id_assessment != null) item.id_assessment else "0"}"
-                                                            + "/${if (item.nama_pm != null) item.nama_pm else "null"}"
-                                                            + "/${if (item.nik_pm != null) item.nik_pm else "0"}"
-                                                            + "/${if (item.petugas_assesmen != null) item.petugas_assesmen else "null"}"
+                                               try {
+                                                   navController.navigate(
+                                                       AppRoute.DetailAtensi.route
+                                                               + "/${if (!item.id_pm.isNullOrEmpty()) item.id_pm else "0"}"
+                                                               + "/${if (!item.id_assessment.isNullOrEmpty()) item.id_assessment else "0"}"
+                                                               + "/${if (!item.nama_pm.isNullOrEmpty()) item.nama_pm else "null"}"
+                                                               + "/${if (!item.nik_pm.isNullOrEmpty()) item.nik_pm else "0"}"
+                                                               + "/${if (!item.petugas_assesmen.isNullOrEmpty()) item.petugas_assesmen else "null"}"
+                                                               + "/${if (!item.tanggal_assesmen.isNullOrEmpty()) item.tanggal_assesmen else "null"}"
 
-                                                )
+                                                   )
+                                               } catch (e:Exception) {
+                                                   Log.e("ERORR NAVIGASI ATENSI",e.toString())
+                                               }
                                             }
                                     ) {
                                         Row(
@@ -143,7 +149,7 @@ fun Atensi(
                                                 )
                                             }
                                             Text(
-                                                text = "${item.petugas_assesmen!!}",
+                                                text = "${item.petugas_assesmen}",
                                                 style = MaterialTheme.typography.bodyMedium,
                                                 fontSize = 10.sp,
                                                 color = Color(0xFFC3C3C3)
