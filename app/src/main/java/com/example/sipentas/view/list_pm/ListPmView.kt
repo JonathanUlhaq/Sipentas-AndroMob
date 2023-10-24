@@ -195,9 +195,10 @@ private fun ListPmItem(
             ) {
                if (item.foto_diri.isNullOrEmpty() || item.foto_diri == "0" || item.foto_diri == "url") {
                    Image(
-                       painter = painterResource(id = R.drawable.gambar_person),
+                       painter = painterResource(id = R.drawable.default_photo),
                        contentDescription = null,
-                       modifier = Modifier
+                       modifier = Modifier,
+                       contentScale = ContentScale.Crop
                    )
                } else {
                    AsyncImage(model = item.foto_diri,

@@ -1,6 +1,7 @@
 package com.example.sipentas.view.assessment
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.models.AssesmentBody
@@ -110,7 +111,10 @@ class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepositor
             }
         }
 
-    fun addAssesmen(body: AssesmentBody,onFailuer:() -> Unit ={},onSuccess:(Int) -> Unit) =
+    fun addAssesmen(body: AssesmentBody,
+                    onLoadingAssesmen:MutableState<Boolean>,
+                    onFailuer:() -> Unit ={},
+                    onSuccess:(Int) -> Unit) =
         viewModelScope.launch {
             try {
                 repo.addAssesmen(body).let {
@@ -123,7 +127,7 @@ class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepositor
             }
         }
 
-    fun addAssesmen(file: MultipartBody.Part,success:(UploadResponse) -> Unit) =
+    fun addAssesmenFile(file: MultipartBody.Part,success:(UploadResponse) -> Unit) =
         viewModelScope.launch {
             try {
                 repo.addFile(file).let {

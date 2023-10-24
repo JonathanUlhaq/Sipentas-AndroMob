@@ -1,6 +1,7 @@
 package com.example.sipentas.view.form_pm
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.di.KabupatenModel
@@ -62,18 +63,22 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
         }
     fun addPm(
         body:PostPmModel,
+        loading:MutableState<Boolean>,
         onError:() -> Unit,
         success:(AddPmResponse) -> Unit
 
     ) =
         viewModelScope.launch {
+            loading.value =true
             try {
                 repo.addPm(body).let {
+                    loading.value = false
                     success.invoke(it)
                 }
 
             } catch (e:Exception) {
                 Log.e("ERROR","Gagal Post $e")
+                loading.value = false
                 onError.invoke()
             }
         }

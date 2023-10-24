@@ -68,6 +68,8 @@ import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownAtensi
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
+import com.example.sipentas.utils.LoadingDialog
+import com.example.sipentas.utils.MapsView
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.assessment.AssesmenViewModel
@@ -262,6 +264,20 @@ fun AllInFormView(
     val idAssesment = remember {
         mutableIntStateOf(0)
     }
+    val onLoadingPm = remember {
+        mutableStateOf(false)
+    }
+    val onLoadingAssesmen = remember {
+        mutableStateOf(false)
+    }
+    val onLoadingAtensi = remember {
+        mutableStateOf(false)
+    }
+
+    LoadingDialog(boolean = onLoadingAtensi)
+    LoadingDialog(boolean = onLoadingPm)
+    LoadingDialog(boolean = onLoadingAssesmen)
+
 val pmAssesmen = remember {
     mutableStateOf("url")
 }
@@ -322,6 +338,15 @@ val pmAssesmen = remember {
                         Modifier
                             .padding(top = 18.dp, start = 16.dp, bottom = 16.dp)
                     ) {
+                        Spacer(modifier = Modifier.height(14.dp))
+                        AnimatedVisibility(visible = lat.value.isNotEmpty() &&
+                                long.value.isNotEmpty() && lat.value != "null" &&
+                                long.value != "null") {
+                            Box(modifier = Modifier.padding(end = 16.dp)) {
+                                MapsView(lat.value.toDouble(),long.value.toDouble())
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(14.dp))
                         LazyRow(content = {
                             itemsIndexed(listSesi) { index, item ->
                                 currentSelected.value = currentIndex.intValue == index
@@ -431,7 +456,8 @@ val pmAssesmen = remember {
                                         asVm = asVm,
                                         lat = lat,
                                         long = long,
-                                        url = pmAssesmen.value
+                                        url = pmAssesmen.value,
+                                        onLoading = onLoadingPm
                                     ) {
                                         Toast.makeText(context,"Penambahan PM berhasil",Toast.LENGTH_SHORT).show()
                                         idUser.value = it.data?.id.toString()
@@ -461,7 +487,8 @@ val pmAssesmen = remember {
                                         urlKtp = urlKtp.value,
                                         idUser = idUser.value,
                                         lat = lat.value,
-                                        long = long.value
+                                        long = long.value,
+                                        onLoadingAssesmen = onLoadingAssesmen
                                     ) {
                                         Toast.makeText(context,"Penambahan assesmen berhasil",Toast.LENGTH_SHORT).show()
                                         idAssesment.intValue = it
@@ -482,7 +509,8 @@ val pmAssesmen = remember {
                                         idAssesmen = idAssesment.value,
                                         urlAtensi = urlAtensi.value,
                                         lat = lat.value,
-                                        long = long.value
+                                        long = long.value,
+                                        onLoadingAtensi = onLoadingAtensi
                                     ) {
                                         Toast.makeText(context,"Penambahan atensi berhasil",Toast.LENGTH_SHORT).show()
                                         navController.popBackStack()
@@ -522,7 +550,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             pmAssesmen.value = it.file_url!!
                         }
                     }
@@ -557,7 +585,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             urlRumah.value = it.file_url!!
                         }
                     }
@@ -592,7 +620,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             urlFisik.value = it.file_url!!
                         }
                     }
@@ -627,7 +655,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             urlKk.value = it.file_url!!
                         }
                     }
@@ -662,7 +690,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             urlKtp.value = it.file_url!!
                         }
                     }
@@ -691,7 +719,7 @@ val pmAssesmen = remember {
                             compressor.name,
                             requestBody
                         )
-                        asVm.addAssesmen(gambar) {
+                        asVm.addAssesmenFile(gambar) {
                             urlAtensi.value = it.file_url!!
                         }
                     }
@@ -722,6 +750,7 @@ fun AtensiForm(
     urlAtensi:String,
     lat:String,
     long:String,
+    onLoadingAtensi: MutableState<Boolean>,
     onClick:() -> Unit
 ) {
     vm.getJenisAtensi()
@@ -919,12 +948,13 @@ fun AtensiForm(
                     id_pendekatan = idPendekatan.intValue,
                     id_pm = idUser.toInt(),
                     jenis = jenis.value,
-                    lat = "0",
-                    long = "0",
+                    lat = lat,
+                    long = long,
                     nilai = if (nilai.value.isEmpty()) "0".toLong() else nilai.value.toLong(),
                     penerima = penerima.value,
-                    tanggal = tanggalAtensi.value
-                )
+                    tanggal = tanggalAtensi.value,
+                ),
+                onLoadingAtensi = onLoadingAtensi
             ) {
                 onClick.invoke()
 
@@ -944,6 +974,7 @@ fun FormAssesment(
     capturedImagebyUriKk: MutableState<Uri>,
     capturedImagebyUriRumah: MutableState<Uri>,
     capturedImagebyUriKtp: MutableState<Uri>,
+    onLoadingAssesmen:MutableState<Boolean>,
     vm: FormPmViewModel,
     asVm: AssesmenViewModel,
     urlFisik:String,
@@ -1368,7 +1399,8 @@ fun FormAssesment(
                         status_dtks = if (dtks.value.isEmpty()) null else dtks.value ,
                         tanggal = tanggalLahir.value,
                         flag = 1
-                    )
+                    ),
+                    onLoadingAssesmen = onLoadingAssesmen
                 ) {
                     onSuccess.invoke(it)
                 }

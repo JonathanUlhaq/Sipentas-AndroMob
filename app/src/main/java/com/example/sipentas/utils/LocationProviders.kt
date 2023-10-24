@@ -72,16 +72,16 @@ class LocationProviders(private val context: Context) {
                         success = { location ->
                             if (location?.latitude == null) {
                                 getLastKnownLocation({location ->
-                                    lat.value = "Latitude: ${location?.latitude}"
-                                    long.value = "Latitude: ${location?.longitude}"
+                                    lat.value = "${location?.latitude}"
+                                    long.value = "${location?.longitude}"
                                     Toast.makeText(context,"Akses lokasi diizinkan ${lat.value +" "+long.value}", Toast.LENGTH_SHORT).show()
                                     Log.d("LATITUDE DAN LONGITUDE",lat.value +" "+ long.value)
                                 }) {
 
                                 }
                             }
-                            lat.value = "Latitude: ${location?.latitude}"
-                            long.value = "Latitude: ${location?.longitude}"
+                            lat.value = "${location?.latitude}"
+                            long.value = "${location?.longitude}"
 //                            Toast.makeText(context,"Akses lokasi diizinkan ${lat.value +" "+long.value}", Toast.LENGTH_SHORT).show()
                             Log.d("LATITUDE DAN LONGITUDE",lat.value +" "+ long.value)
 

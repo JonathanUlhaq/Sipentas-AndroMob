@@ -215,7 +215,7 @@ fun LoginView(
                                 loading.value = false
                                 errorMessage.value = when(it.toString()) {
                                     "retrofit2.HttpException: HTTP 401 Unauthorized" -> "Kamu sedang login, logout terlebih dahulu"
-                                    "retrofit2.HttpException: HTTP 401 Unauthorized" -> "NIK / Password salah"
+                                    "retrofit2.HttpException: HTTP 400 Bad Request" -> "NIK / Password salah"
                                     else -> "NIK / Password tidak boleh kosong"
                                 }
                             }) {

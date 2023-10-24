@@ -751,7 +751,7 @@ fun DetailAssessmentView(
                            compressor.name,
                            requestBody
                        )
-                       asVm.addAssesmen(gambar) {
+                       asVm.addAssesmenFile(gambar) {
                            urlRumah.value = it.file_url!!
                        }
                    }
@@ -786,7 +786,7 @@ fun DetailAssessmentView(
                            compressor.name,
                            requestBody
                        )
-                       asVm.addAssesmen(gambar) {
+                       asVm.addAssesmenFile(gambar) {
                            urlFisik.value = it.file_url!!
                        }
                    }
@@ -821,7 +821,7 @@ fun DetailAssessmentView(
                            compressor.name,
                            requestBody
                        )
-                       asVm.addAssesmen(gambar) {
+                       asVm.addAssesmenFile(gambar) {
                            urlKk.value = it.file_url!!
                        }
                    }
@@ -856,7 +856,7 @@ fun DetailAssessmentView(
                            compressor.name,
                            requestBody
                        )
-                       asVm.addAssesmen(gambar) {
+                       asVm.addAssesmenFile(gambar) {
                            urlKtp.value = it.file_url!!
                        }
                    }

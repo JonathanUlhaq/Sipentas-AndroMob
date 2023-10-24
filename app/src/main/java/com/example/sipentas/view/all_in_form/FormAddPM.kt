@@ -71,6 +71,7 @@ fun FormAddPm(
     lat:MutableState<String>,
     long:MutableState<String>,
     url:String = "url",
+    onLoading:MutableState<Boolean>,
     onAction: (AddPmResponse) -> Unit
 
 ) {
@@ -209,36 +210,7 @@ fun FormAddPm(
             }) {
 
             }
-            if (!formWajib.value) {
-                runBlocking {
-                        vm.addPm(
-                            PostPmModel(
-                                name = nama.value,
-                                date_of_birth = if (tanggalLahir.value.isEmpty()) null else tanggalLahir.value,
-                                foto_diri = url,
-                                gender = kelaminString.value,
-                                kabupaten_id = kabupatenId.intValue,
-                                kecamatan_id = if (kecamatanId.intValue.equals(0)) null else kecamatanId.intValue,
-                                kelurahan_id = if (kelurahanId.longValue.equals(0L)) null else kelurahanId.longValue,
-                                ket_ppks = if (keteranganPPks.value.isEmpty()) null else keteranganPPks.value,
-                                kluster_id = kategoriPpksInt.intValue,
-                                kode_pos = null,
-                                nama_jalan = if (namaJalan.value.isEmpty()) null else namaJalan.value,
-                                nik = if (nik.value.isEmpty()) null else nik.value,
-                                phone_number = if (nomorHandphone.value.isEmpty()) null else nomorHandphone.value,
-                                place_of_birth = if (tempatLahir.value.isEmpty()) null else tempatLahir.value ,
-                                provinsi_id = provinsiInt.intValue,
-                                ragam_id = ragamId.intValue,
-                                religion = if (agamaId.intValue.equals(0))null else agamaId.intValue,
-                                satker_id = 9
-                            )
-                            , onError = {locationPermission.value = false}) {
-                            onAction.invoke( it)
-                        }
 
-
-                }
-            }
         }
     }
 
@@ -546,6 +518,37 @@ fun FormAddPm(
         }) {
             if (!formWajib.value) {
                 locationPermission.value = true
+                    runBlocking {
+                        vm.addPm(
+                            PostPmModel(
+                                name = nama.value,
+                                date_of_birth = if (tanggalLahir.value.isEmpty()) null else tanggalLahir.value,
+                                foto_diri = url,
+                                gender = kelaminString.value,
+                                kabupaten_id = kabupatenId.intValue,
+                                kecamatan_id = if (kecamatanId.intValue.equals(0)) null else kecamatanId.intValue,
+                                kelurahan_id = if (kelurahanId.longValue.equals(0L)) null else kelurahanId.longValue,
+                                ket_ppks = if (keteranganPPks.value.isEmpty()) null else keteranganPPks.value,
+                                kluster_id = kategoriPpksInt.intValue,
+                                kode_pos = null,
+                                nama_jalan = if (namaJalan.value.isEmpty()) null else namaJalan.value,
+                                nik = if (nik.value.isEmpty()) null else nik.value,
+                                phone_number = if (nomorHandphone.value.isEmpty()) null else nomorHandphone.value,
+                                place_of_birth = if (tempatLahir.value.isEmpty()) null else tempatLahir.value ,
+                                provinsi_id = provinsiInt.intValue,
+                                ragam_id = ragamId.intValue,
+                                religion = if (agamaId.intValue.equals(0))null else agamaId.intValue,
+                                satker_id = 9
+                            ),
+                            loading = onLoading
+                            , onError = {locationPermission.value = false}) {
+                            onAction.invoke( it)
+                            locationPermission.value = false
+                        }
+
+
+                    }
+
             }
 
         }

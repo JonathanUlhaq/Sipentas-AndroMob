@@ -109,7 +109,7 @@ interface SipentasAPI {
     @GET("pendekatan-atensi")
     suspend fun getPendekatanAtensi():List<PendekatanAtensiResponse>
 
-    @GET("atensi")
+    @GET("atensi-by-sentra")
     suspend fun getAtensi():AtensiResponse
 
     @POST("create-atensi")

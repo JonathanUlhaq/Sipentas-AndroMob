@@ -59,6 +59,7 @@ import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
+import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
@@ -276,7 +277,10 @@ fun FormAssessment(
     val long = remember {
         mutableStateOf("")
     }
-
+    val onLoadingAssesmen = remember {
+        mutableStateOf(false)
+    }
+    LoadingDialog(boolean = onLoadingAssesmen)
     formWajib.value = pendidikanString.value.isEmpty()
             || sumberString.value.isEmpty()
             || pekerjaanString.value.isEmpty()
@@ -336,8 +340,10 @@ fun FormAssessment(
                 ),
                 onFailuer = {
                     locationPermission.value = false
-                }
-            ) {
+                },
+                onLoadingAssesmen = onLoadingAssesmen
+            )
+            {
                 locationPermission.value = false
                 Toast.makeText(context,"Assesmen berhasil ditambahkan",Toast.LENGTH_SHORT).show()
                 navController.popBackStack()
@@ -868,13 +874,7 @@ fun FotoBox(
                     modifier = Modifier
                         .fillMaxSize()
                 )
-            } else if (url != "0") {
-                AsyncImage(model = url,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize())
-            } else {
+            } else if (url.isNullOrEmpty() || url == "0" || url == "url") {
                 Column(
                     Modifier
                         .fillMaxWidth(),
@@ -893,6 +893,12 @@ fun FotoBox(
                         color = Color.White
                     )
                 }
+            } else {
+                AsyncImage(model = url,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize())
             }
 
         }

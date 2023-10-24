@@ -1,6 +1,7 @@
 package com.example.sipentas.view.detail_atensi
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.models.AtensiBody
@@ -44,13 +45,19 @@ class DetailAtensiViewModel @Inject constructor(private val repo:AtensiRepositor
                 onError.invoke()
             }
         }
-    fun addAtensi(body:AtensiBody,onSuccess:() -> Unit) =
+    fun addAtensi(body:AtensiBody,
+                  onLoadingAtensi:MutableState<Boolean>,
+                  onSuccess:() -> Unit) =
         viewModelScope.launch {
+            onLoadingAtensi.value = true
             try {
                 repo.addAtensi(body).let {
-                    onSuccess.invoke()
+                    onSuccess.invoke().let {
+                        onLoadingAtensi.value = false
+                    }
                 }
             } catch (e:Exception) {
+                onLoadingAtensi.value = false
                 Log.e("ERROR POST",e.toString())
             }
         }

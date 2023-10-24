@@ -35,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -61,6 +62,8 @@ import com.example.sipentas.models.AtensiBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownAtensi
 import com.example.sipentas.utils.DropDownDummy
+import com.example.sipentas.utils.LoadingDialog
+import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.form_assessment.PickPdfFile
@@ -68,6 +71,7 @@ import com.example.sipentas.widgets.DatePicker
 import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.default
 import id.zelory.compressor.constraint.destination
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
@@ -149,6 +153,8 @@ fun DetailAtens(
     }
 
     val context = LocalContext.current
+
+    val location = LocationProviders(context)
     val dropDownAtensi = DropDownAtensi(vm)
     if (showPermission.value) {
         RequestCameraPermission(
@@ -156,6 +162,34 @@ fun DetailAtens(
             openCamera = openCamera
         )
     }
+    val onLoadingAtensi = remember {
+        mutableStateOf(false)
+    }
+
+    val lat = remember {
+        mutableStateOf("")
+    }
+    val long = remember {
+        mutableStateOf("")
+    }
+    val locationPermission = remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(Unit) {
+        locationPermission.value =true
+    }
+    if (locationPermission.value) {
+        location.LocationPermission(lat = lat, long = long).let {
+            locationPermission.value =false
+            location.getLastKnownLocation(success = {
+                locationPermission.value =false
+            }) {
+
+            }
+
+        }
+    }
+    LoadingDialog(boolean = onLoadingAtensi)
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
 
@@ -310,7 +344,7 @@ Box {
                                             .width(82.dp)
                                             .height(45.dp)
                                     ) {
-                                        Image(painter = painterResource(id = R.drawable.gambar_person),
+                                        Image(painter = painterResource(id = R.drawable.default_photo),
                                             contentDescription = null,
                                             contentScale = ContentScale.Crop)
                                     }
@@ -505,12 +539,13 @@ Box {
                                                 id_pendekatan = idPendekatan.intValue,
                                                 id_pm = idPm.toInt(),
                                                 jenis = jenis.value,
-                                                lat = "0",
-                                                long = "0",
+                                                lat = lat.value,
+                                                long = long.value,
                                                 nilai = if (nilai.value.isEmpty()) "0".toLong() else nilai.value.toLong(),
                                                 penerima = penerima.value,
-                                                tanggal = tanggalAtensi.value
-                                            )
+                                                tanggal = tanggalAtensi.value,
+                                            ),
+                                            onLoadingAtensi = onLoadingAtensi
                                         ) {
                                             Toast.makeText(context,"Atensi berhasil ditambah",Toast.LENGTH_SHORT).show()
                                         }

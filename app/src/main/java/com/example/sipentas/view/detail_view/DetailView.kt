@@ -356,14 +356,7 @@ fun DetailView(
                                     modifier = Modifier
                                         .fillMaxSize()
                                 )
-                            } else if (!fotoDiri.isEmpty() || fotoDiri == "0" || fotoDiri == "url") {
-                                AsyncImage(model = fotoDiri,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxSize())
-                            }
-                            else {
+                            } else if (fotoDiri.isNullOrEmpty() || fotoDiri == "0" || fotoDiri == "url") {
                                 Column(
                                     Modifier
                                         .fillMaxWidth(),
@@ -382,6 +375,13 @@ fun DetailView(
                                         color = Color.White
                                     )
                                 }
+                            }
+                            else {
+                                AsyncImage(model = fotoDiri,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize())
                             }
 
                         }
