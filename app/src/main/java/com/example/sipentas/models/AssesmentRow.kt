@@ -1,6 +1,7 @@
 package com.example.sipentas.models
 
 data class AssesmentRow (
+    val id_asesmen:String? = null,
     val flag:Int? = null,
     val tanggal:String? = null,
     val petugas:String? = null,
@@ -33,5 +34,7 @@ data class AssesmentRow (
     val id_status_ortu:Int? = null,
     val nama_status_ortu:String? = null,
     val id_tempat_tinggal:Int? = null,
-    val nama_tempat_tinggal:String? = null
+    val nama_tempat_tinggal:String? = null,
+    val nik_ibu:String? = null,
+    val file_lap:String? = null
         )

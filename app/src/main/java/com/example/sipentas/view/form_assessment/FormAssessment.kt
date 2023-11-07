@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -55,18 +57,30 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.component.NikFilledText
 import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.utils.CameraView
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.utils.LocationProviders
+import com.example.sipentas.utils.MapsView
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.form_pm.FormPmViewModel
 import com.example.sipentas.widgets.DatePicker
+import id.zelory.compressor.Compressor
+import id.zelory.compressor.constraint.default
+import id.zelory.compressor.constraint.destination
+import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
+import java.text.DecimalFormat
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -280,13 +294,33 @@ fun FormAssessment(
     val onLoadingAssesmen = remember {
         mutableStateOf(false)
     }
+
+    val locationPermission = remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(Unit) {
+        locationPermission.value =true
+    }
+    val pdfUrl = remember {
+        mutableStateOf("")
+    }
+    val location = LocationProviders(context)
+    if (locationPermission.value) {
+            location.getLastKnownLocation(success = {
+                locationPermission.value =false
+            }) {
+
+            }
+        location.LocationPermission(lat = lat, long = long)
+        locationPermission.value =false
+
+
+    }
+
     LoadingDialog(boolean = onLoadingAssesmen)
-    formWajib.value = pendidikanString.value.isEmpty()
-            || sumberString.value.isEmpty()
-            || pekerjaanString.value.isEmpty()
-            || statusOrtuString.value.isEmpty()
-            || pekerjaanOrtuString.value.isEmpty()
-            || tempatTinggalString.value.isEmpty()
+    formWajib.value = sumberString.value.isEmpty()
+            || tanggalLahir.value.isEmpty()
+
 
     val dropDownCompose = DropdownCompose(vm, asVm)
 
@@ -296,61 +330,9 @@ fun FormAssessment(
             openCamera = openCameraKtp
         )
     }
-    val location = LocationProviders(context)
-    val locationPermission = remember {
-        mutableStateOf(false)
-    }
 
-    if (locationPermission.value) {
-        location.LocationPermission(lat = lat, long = long).let {
-            location.getLastKnownLocation(success = {
 
-            }) {
 
-            }
-        }
-
-        if (!formWajib.value
-        ) {
-            asVm.addAssesmen(
-                AssesmentBody(
-                    catatan = catatan.value,
-                    foto_kk = urlKk.value,
-                    foto_kondisi_fisik = urlFisik.value,
-                    foto_ktp = urlKtp.value,
-                    foto_rumah = urlRumah.value,
-                    id_kerja_ortu = pekerjaanOrtuInt.intValue,
-                    id_lembaga = 1,
-                    id_pekerjaan = pekerjaanInt.intValue,
-                    id_pendidikan = pendidikanInt.intValue,
-                    id_pm = idUser.value.toInt(),
-                    id_status_ortu = statusInt.intValue,
-                    id_sumber_kasus = sumberInt.intValue,
-                    id_tempat_tgl = tempatTinggalInt.intValue,
-                    lat = lat.value,
-                    long = long.value,
-                    nama_bpk = if (namaBapak.value.isEmpty()) null else namaBapak.value,
-                    nama_ibu = if (namaIbu.value.isEmpty()) null else namaIbu.value,
-                    nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
-                    nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
-                    petugas = if (petugas.value.isEmpty()) null else petugas.value,
-                    status_dtks = if (dtks.value.isEmpty()) null else dtks.value ,
-                    tanggal = tanggalLahir.value,
-                    flag = 1
-                ),
-                onFailuer = {
-                    locationPermission.value = false
-                },
-                onLoadingAssesmen = onLoadingAssesmen
-            )
-            {
-                locationPermission.value = false
-                Toast.makeText(context,"Assesmen berhasil ditambahkan",Toast.LENGTH_SHORT).show()
-                navController.popBackStack()
-            }
-
-        }
-    }
     Box {
 
         Scaffold(
@@ -397,6 +379,10 @@ fun FormAssessment(
                         .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .verticalScroll(scrollState)
                 ) {
+                   AnimatedVisibility(visible = !lat.value.isNullOrEmpty() && !long.value.isNullOrEmpty() && long.value != "null" && lat.value != "null") {
+                       MapsView(lat.value.toDouble(), long.value.toDouble())
+                   }
+                    Spacer(modifier = Modifier.height(12.dp))
                     Row(
                         Modifier
                             .fillMaxWidth()
@@ -456,11 +442,11 @@ fun FormAssessment(
                             }
                         }
                     }
-                    AnimatedVisibility(visible = pendidikanString.value.isEmpty() || sumberString.value.isEmpty()) {
+                    AnimatedVisibility(visible = sumberString.value.isEmpty()) {
                         Column {
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
-                                text = "* Pendidikan dan Sumber Kasus wajib diisi",
+                                text = "* Sumber Kasus wajib diisi",
                                 fontSize = 10.sp,
                                 color = Color.Red
                             )
@@ -483,16 +469,16 @@ fun FormAssessment(
                             }
                         }
                     }
-                    AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Pekerjaan wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
+//        AnimatedVisibility(visible = pekerjaanString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Pekerjaan wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
                     Spacer(modifier = Modifier.height(14.dp))
                     DatePicker(context = context, date = tanggalLahir, label = "Tanggal Assesment")
                     AnimatedVisibility(visible = tanggalLahir.value.isEmpty()) {
@@ -514,6 +500,7 @@ fun FormAssessment(
                         modifier = Modifier
                             .fillMaxWidth()
                     )
+
                     Spacer(modifier = Modifier.height(14.dp))
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
@@ -536,16 +523,16 @@ fun FormAssessment(
                             statusInt.intValue = id
                         }
                     }
-                    AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Status Orang Tua wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
+//        AnimatedVisibility(visible = statusOrtuString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Status Orang Tua wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
                     Spacer(modifier = Modifier.height(14.dp))
                     Row(
                         Modifier
@@ -575,16 +562,16 @@ fun FormAssessment(
                             }
                         }
                     }
-                    AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
-                        Column {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Text(
-                                text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
-                                fontSize = 10.sp,
-                                color = Color.Red
-                            )
-                        }
-                    }
+//        AnimatedVisibility(visible = pekerjaanOrtuString.value.isEmpty() || tempatTinggalString.value.isEmpty()) {
+//            Column {
+//                Spacer(modifier = Modifier.height(6.dp))
+//                Text(
+//                    text = "* Pekerjaan Orang Tua dan Tempat Tinggal wajib diisi",
+//                    fontSize = 10.sp,
+//                    color = Color.Red
+//                )
+//            }
+//        }
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
                         textString = namaBapak,
@@ -604,13 +591,14 @@ fun FormAssessment(
                             .fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(14.dp))
-                    FilledTextField(
+                    NikFilledText(
                         textString = nikIbu,
                         label = "NIK Ibu",
                         imeAction = ImeAction.Default,
                         singleLine = true,
                         modifier = Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
+                        keyboardType = KeyboardType.Number
                     )
                     Spacer(modifier = Modifier.height(14.dp))
                     FilledTextField(
@@ -641,11 +629,28 @@ fun FormAssessment(
                             .fillMaxWidth()
                     )
 //                    Foto
-
                     Spacer(modifier = Modifier.height(14.dp))
                     PickPdfFile(urri = pdfUri, onPdfPicked = { uri ->
                         pdfUri.value = uri
-                    })
+                        runBlocking {
+                            try {
+                                val stream = context.contentResolver.openInputStream(uri) ?: return@runBlocking
+                                val request = RequestBody.create("application/pdf".toMediaTypeOrNull(), stream.readBytes())
+                                val filePart = MultipartBody.Part.createFormData(
+                                    "file",
+                                    "test.pdf",
+                                    request
+                                )
+                                asVm.addAssesmenFile(filePart) {
+                                    pdfUrl.value = it.file_url!!
+                                }
+                            } catch (e:Exception) {
+                                Log.d("ERROR KENAPA NICH",e.toString())
+                            }
+                        }
+
+                    },
+                    url = pdfUrl.value)
                     Spacer(modifier = Modifier.height(14.dp))
                     ButtonPrimary(text = {
                         Row(
@@ -668,9 +673,41 @@ fun FormAssessment(
                             )
                         }
                     }) {
+
                         if (!formWajib.value
                         ) {
-                            locationPermission.value = true
+                            asVm.addAssesmen(
+                                AssesmentBody(
+                                    catatan = catatan.value,
+                                    foto_kk = if (urlKk.value.isEmpty()) null else urlKk.value,
+                                    foto_kondisi_fisik = if (urlFisik.value.isEmpty()) null else urlFisik.value,
+                                    foto_ktp = if (urlKtp.value.isEmpty()) null else urlKtp.value,
+                                    foto_rumah = if (urlRumah.value.isEmpty()) null else urlRumah.value,
+                                    id_kerja_ortu = if (pekerjaanOrtuInt.intValue.equals(0)) null else pekerjaanOrtuInt.intValue,
+                                    id_lembaga = 1,
+                                    id_pekerjaan = if (pekerjaanInt.intValue.equals(0)) null else pekerjaanInt.intValue,
+                                    id_pendidikan = if (pendidikanInt.intValue.equals(0)) null else pendidikanInt.intValue,
+                                    id_pm = idUser.value.toInt(),
+                                    id_status_ortu = if (statusInt.intValue.equals(0)) null else statusInt.intValue,
+                                    id_sumber_kasus = sumberInt.intValue,
+                                    id_tempat_tgl = if (tempatTinggalInt.intValue.equals(0)) null else tempatTinggalInt.intValue,
+                                    lat = lat.value,
+                                    long = long.value,
+                                    nama_bpk = if (namaBapak.value.isEmpty()) null else namaBapak.value,
+                                    nama_ibu = if (namaIbu.value.isEmpty()) null else namaIbu.value,
+                                    nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
+                                    nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
+                                    petugas = if (petugas.value.isEmpty()) null else petugas.value,
+                                    status_dtks = if (dtks.value.isEmpty()) null else dtks.value,
+                                    tanggal = tanggalLahir.value,
+                                    penghasilan = if (penghasilan.value.isEmpty()) null else penghasilan.value.toLong(),
+                                    file_lap = if (pdfUrl.value.isEmpty()) null else pdfUrl.value
+                                ),
+                                onLoadingAssesmen = onLoadingAssesmen
+                            ) {
+                                Toast.makeText(context,"Assesmen berhasil ditambahkan",Toast.LENGTH_SHORT).show()
+                                navController.popBackStack()
+                            }
 
                         }
                     }
@@ -692,6 +729,22 @@ fun FormAssessment(
                     capturedImagebyUriRumah.value = uri
                     showPermissionRumah.value = false
                     openCameraRumah.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriRumah.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmenFile(gambar) {
+                            urlRumah.value = it.file_url!!
+                        }
+                    }
                     cameraExecutorRumah.shutdown()
                 },
                 onError = {
@@ -711,6 +764,22 @@ fun FormAssessment(
                     capturedImagebyUriFisik.value = uri
                     showPermissionFisik.value = false
                     openCameraFisik.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriFisik.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmenFile(gambar) {
+                            urlFisik.value = it.file_url!!
+                        }
+                    }
                     cameraExecutorFisik.shutdown()
                 },
                 onError = {
@@ -730,6 +799,22 @@ fun FormAssessment(
                     capturedImagebyUriKk.value = uri
                     showPermissionKk.value = false
                     openCameraKk.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriKk.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmenFile(gambar) {
+                            urlKk.value = it.file_url!!
+                        }
+                    }
                     cameraExecutorKk.shutdown()
                 },
                 onError = {
@@ -749,6 +834,22 @@ fun FormAssessment(
                     capturedImagebyUriKtp.value = uri
                     showPermissionKtp.value = false
                     openCameraKtp.value = false
+                    runBlocking {
+                        val file = File(capturedImagebyUriKtp.value?.path!!)
+                        val compressor = Compressor.compress(context, file) {
+                            default()
+                            destination(file)
+                        }
+                        val requestBody = compressor.asRequestBody("image/*".toMediaType())
+                        val gambar = MultipartBody.Part.createFormData(
+                            "file",
+                            compressor.name,
+                            requestBody
+                        )
+                        asVm.addAssesmenFile(gambar) {
+                            urlKtp.value = it.file_url!!
+                        }
+                    }
                     cameraExecutorKtp.shutdown()
                 },
                 onError = {
@@ -760,7 +861,7 @@ fun FormAssessment(
 }
 
 @Composable
-fun PickPdfFile(urri: MutableState<Uri?>, onPdfPicked: (Uri) -> Unit) {
+fun PickPdfFile(isEdit: Boolean = true,urri: MutableState<Uri?>, url:String, onPdfPicked: (Uri) -> Unit) {
     val context = LocalContext.current
     val isNotNull = remember {
         mutableStateOf(false)
@@ -779,7 +880,9 @@ fun PickPdfFile(urri: MutableState<Uri?>, onPdfPicked: (Uri) -> Unit) {
         modifier = Modifier
             .clip(RoundedCornerShape(12.dp))
             .clickable {
-                launcher.launch("application/pdf")
+                if (isEdit) {
+                    launcher.launch("application/pdf")
+                }
             }
             .fillMaxWidth()
     ) {
@@ -810,7 +913,7 @@ fun PickPdfFile(urri: MutableState<Uri?>, onPdfPicked: (Uri) -> Unit) {
                     text = if (urri.value != null) getFileName(
                         context,
                         urri.value!!
-                    ) else "Unggah Dokumen PDF",
+                    ) else if (url.isNotEmpty() && url != "0") url.replace("http://api.sipentas-atensi.id/getFile/","") else "Unggah Dokumen PDF",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 12.sp,
                     color = Color(0xFF8F8F8F)
@@ -849,7 +952,8 @@ fun FotoBox(
     capturedImagebyUriRumah: MutableState<Uri>,
     modifier: Modifier = Modifier,
     label: String,
-    url:String = "0"
+    url:String = "0",
+    isEdit:Boolean = true
 ) {
     Surface(
         modifier
@@ -861,8 +965,10 @@ fun FotoBox(
             modifier = Modifier
                 .fillMaxSize()
                 .clickable {
-                    showPermissionRumah.value = true
-                }
+                    if (isEdit) {
+                        showPermissionRumah.value = true
+                    }
+                 }
                 .wrapContentSize(Alignment.Center)
 
         ) {
@@ -874,7 +980,7 @@ fun FotoBox(
                     modifier = Modifier
                         .fillMaxSize()
                 )
-            } else if (url.isNullOrEmpty() || url == "0" || url == "url") {
+            } else if (url.isNullOrEmpty() || url == "0" || url == "url" || url == "url foto") {
                 Column(
                     Modifier
                         .fillMaxWidth(),

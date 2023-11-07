@@ -15,7 +15,6 @@ data class AssesmentBody(
     val nama_ibu:String?,
     val nik_ibu:String?,
     val nama_wali:String?,
-    val flag:Int?,
     val id_tempat_tgl:Int?,
     val catatan:String?,
     val foto_rumah:String?,
@@ -23,6 +22,8 @@ data class AssesmentBody(
     val foto_kk:String?,
     val foto_ktp:String?,
     val long:String?,
-    val lat:String?
+    val lat:String?,
+    val penghasilan:Long?,
+    val file_lap:String?
 
 )

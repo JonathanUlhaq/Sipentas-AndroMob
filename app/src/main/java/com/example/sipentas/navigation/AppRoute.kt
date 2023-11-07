@@ -9,4 +9,5 @@ sealed class AppRoute(val route:String) {
     object DetailAtensi:AppRoute("detailatensi")
     object UpdatePassword:AppRoute("updatepassword")
     object DetailAssessment:AppRoute("detailassessment")
+    object AddAtensi:AppRoute("addatensi")
 }

@@ -1,8 +1,10 @@
 package com.example.sipentas.models
 
 data class AtensItem (
-    val id_jenis:String? = null,
+    val id_jenis_atensi:String? = null,
     val jenis:String? = null,
+    val tanggal:String? = null,
+    val penerima:String? = null,
     val nilai:String? = null,
     val nama_jenis_atensi:String? = null,
     val nama_pm:String? = null,
@@ -15,5 +17,6 @@ data class AtensItem (
     val nama_pendekatan_atensi:String? = null,
     val lat:String? = null,
     val long:String? = null,
+    val foto:String? = null,
     val nik_pm:String? = null
         )

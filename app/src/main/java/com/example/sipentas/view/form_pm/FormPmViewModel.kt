@@ -2,6 +2,8 @@ package com.example.sipentas.view.form_pm
 
 import android.util.Log
 import androidx.compose.runtime.MutableState
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.di.KabupatenModel
@@ -9,19 +11,21 @@ import com.example.sipentas.di.KategoriModel
 import com.example.sipentas.di.ProvinsiModel
 import com.example.sipentas.di.RagamModel
 import com.example.sipentas.models.AddPmResponse
+import com.example.sipentas.models.DetailPmResponse
 import com.example.sipentas.models.KecamatanModel
 import com.example.sipentas.models.KelurahanModel
 import com.example.sipentas.models.PmUpdateBody
 import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.models.upload_file.UploadResponse
+import com.example.sipentas.models.verifikasi_assesment.VerifikasiAssesmentResponse
 import com.example.sipentas.repositories.PmFormRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
-import java.lang.Exception
 import javax.inject.Inject
+import kotlin.Exception
 
 @HiltViewModel
 class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewModel() {
@@ -43,6 +47,44 @@ class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewMode
 
     private val _kelurahan = MutableStateFlow<List<KelurahanModel>>(emptyList())
     val kelurahan = _kelurahan.asStateFlow()
+
+    private val _pmDetail = MutableStateFlow(DetailPmResponse())
+    val pmDetail = _pmDetail.asStateFlow()
+
+    private val _assesmentState = MutableStateFlow(VerifikasiAssesmentResponse())
+    val assesmentState = _assesmentState.asStateFlow()
+
+
+    private val _liveBoolean = MutableLiveData<Boolean>()
+    val liveBoolean:LiveData<Boolean>
+        get() = _liveBoolean
+    fun getLive():LiveData<Boolean> = liveBoolean
+
+    fun changeLive(live:Boolean) {
+        _liveBoolean.value = live
+    }
+
+    fun getAssesmentPm(id:Int) =
+        viewModelScope.launch {
+            try {
+                repo.getAssesmentPm(id).let { item ->
+                    _assesmentState.value = item
+                }
+            }  catch (e:Exception) {
+                Log.e("EROR GET DATA ASsesment", e.toString())
+            }
+        }
+
+    fun getPmDetail(id: Int) =
+        viewModelScope.launch {
+            try {
+                repo.getPmDetail(id).let { item ->
+                    _pmDetail.value = item
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA PROVINSI", e.toString())
+            }
+        }
 
     fun postPhoto(
         photo:MultipartBody.Part,

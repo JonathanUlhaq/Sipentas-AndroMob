@@ -25,6 +25,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Sipentas"
+        android:requestLegacyExternalStorage="true"
         tools:targetApi="31">
         <provider
             android:name="com.example.sipentas.provider.SipentasFileProvider"
@@ -47,7 +48,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyBnrx-RCI7ksZls796EMW4RdkeNvA6t8io"/>
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="AIzaSyCJ0zCJf5suRFHrdSkapdL373NcgBxWgLU"/>
     </application>
 
 </manifest>

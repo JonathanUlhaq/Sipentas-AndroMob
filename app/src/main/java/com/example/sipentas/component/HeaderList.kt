@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,8 +26,16 @@ import javax.inject.Inject
 fun HeaderList(
     search: MutableState<String>,
     label: String,
-    vm: LoginViewModel
+    vm: LoginViewModel,
+    list:List<*>?
 ) {
+
+    vm.getUser()
+    val userState = vm.userState.collectAsState().value
+      if (!userState.isEmpty()) {
+        vm.prefs.saveName(userState[0].username!!)
+        vm.prefs.saveSatker(userState[0].sentra!!)
+    }
 
 
     Box(
@@ -39,26 +48,38 @@ fun HeaderList(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White
-                )
-
-                Column (
-                    horizontalAlignment = Alignment.End
-                        ) {
+                Column {
                     Text(
-                        text = "${vm.getName()}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        text = label,
+                        style = MaterialTheme.typography.titleMedium,
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "${vm.getSatker()}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White
-                    )
+                   if (!list.isNullOrEmpty()) {
+                       Text(
+                           text = "${list.count()}",
+                           style = MaterialTheme.typography.bodyMedium,
+                           color = Color.White
+                       )
+                   }
+                }
+
+                if (!userState.isEmpty()) {
+                    Column (
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = "${userState[0].username}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "${userState[0].sentra}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(20.dp))

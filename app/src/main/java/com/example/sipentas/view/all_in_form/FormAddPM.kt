@@ -70,7 +70,7 @@ fun FormAddPm(
     asVm:AssesmenViewModel,
     lat:MutableState<String>,
     long:MutableState<String>,
-    url:String = "url",
+    url:String = "0",
     onLoading:MutableState<Boolean>,
     onAction: (AddPmResponse) -> Unit
 
@@ -523,7 +523,7 @@ fun FormAddPm(
                             PostPmModel(
                                 name = nama.value,
                                 date_of_birth = if (tanggalLahir.value.isEmpty()) null else tanggalLahir.value,
-                                foto_diri = url,
+                                foto_diri = if (url == "0") null else url,
                                 gender = kelaminString.value,
                                 kabupaten_id = kabupatenId.intValue,
                                 kecamatan_id = if (kecamatanId.intValue.equals(0)) null else kecamatanId.intValue,

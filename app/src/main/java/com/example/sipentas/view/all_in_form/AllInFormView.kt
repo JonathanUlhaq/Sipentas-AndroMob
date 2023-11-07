@@ -30,6 +30,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +40,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +62,7 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.component.NikFilledText
 import com.example.sipentas.component.OutlineButtonPrimary
 import com.example.sipentas.models.AssesmentBody
 import com.example.sipentas.models.AtensiBody
@@ -82,10 +85,15 @@ import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.default
 import id.zelory.compressor.constraint.destination
 import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
+import okio.BufferedSink
 import java.io.File
+import java.io.InputStream
 import java.util.concurrent.Executors
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -94,7 +102,7 @@ fun AllInFormView(
     navController: NavController,
     vm: FormPmViewModel,
     asVm: AssesmenViewModel,
-    atensiVm:DetailAtensiViewModel
+    atensiVm: DetailAtensiViewModel
 ) {
 
     asVm.getPendidikan()
@@ -102,6 +110,9 @@ fun AllInFormView(
     asVm.getPekerjaan()
     asVm.getStatusOrtu()
     asVm.getTempatTinggal()
+
+    val detailPm = vm.pmDetail.collectAsState().value
+    val detailAssesment = asVm.detailAssesmen.collectAsState().value
 
     val listSesi = listOf(
         TimelineModel(1, "Penerima Manfaat"),
@@ -226,23 +237,26 @@ fun AllInFormView(
         )
     }
     val urlFisik = remember {
-        mutableStateOf("")
+        mutableStateOf("0")
     }
     val urlKk = remember {
-        mutableStateOf("url")
+        mutableStateOf("0")
     }
     val urlAtensi = remember {
-        mutableStateOf("url")
+        mutableStateOf("0")
     }
     val urlKtp = remember {
-        mutableStateOf("url")
+        mutableStateOf("0")
     }
     val urlRumah = remember {
-        mutableStateOf("url")
+        mutableStateOf("0")
     }
 
     val idUser = remember {
         mutableStateOf("")
+    }
+    if (idUser.value.isNotEmpty()) {
+        vm.getPmDetail(idUser.value.toInt())
     }
     val lat = remember {
         mutableStateOf("")
@@ -264,6 +278,9 @@ fun AllInFormView(
     val idAssesment = remember {
         mutableIntStateOf(0)
     }
+    if (!idAssesment.equals(0)) {
+        asVm.getDetailAssesment(idAssesment.value)
+    }
     val onLoadingPm = remember {
         mutableStateOf(false)
     }
@@ -278,9 +295,9 @@ fun AllInFormView(
     LoadingDialog(boolean = onLoadingPm)
     LoadingDialog(boolean = onLoadingAssesmen)
 
-val pmAssesmen = remember {
-    mutableStateOf("url")
-}
+    val pmAssesmen = remember {
+        mutableStateOf("0")
+    }
     if (showPermissionAtensi.value) {
         RequestCameraPermission(
             context = context,
@@ -339,11 +356,13 @@ val pmAssesmen = remember {
                             .padding(top = 18.dp, start = 16.dp, bottom = 16.dp)
                     ) {
                         Spacer(modifier = Modifier.height(14.dp))
-                        AnimatedVisibility(visible = lat.value.isNotEmpty() &&
-                                long.value.isNotEmpty() && lat.value != "null" &&
-                                long.value != "null") {
+                        AnimatedVisibility(
+                            visible = lat.value.isNotEmpty() &&
+                                    long.value.isNotEmpty() && lat.value != "null" &&
+                                    long.value != "null"
+                        ) {
                             Box(modifier = Modifier.padding(end = 16.dp)) {
-                                MapsView(lat.value.toDouble(),long.value.toDouble())
+                                MapsView(lat.value.toDouble(), long.value.toDouble())
                             }
                         }
                         Spacer(modifier = Modifier.height(14.dp))
@@ -438,6 +457,53 @@ val pmAssesmen = remember {
                         })
                     }
                     Spacer(modifier = Modifier.height(14.dp))
+                    AnimatedVisibility(visible = detailPm.data?.name != null) {
+                        Column (Modifier.padding(start = 16.dp, end = 16.dp)) {
+                            Divider(color = Color(0xFFE8E8E8).copy(0.3f))
+                            Spacer(modifier = Modifier.height(6.dp))
+                            LazyRow {
+                                item {
+                                    Text(
+                                        text = "${detailPm.data?.name}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(24.dp))
+                                    Text(
+                                        text = "|",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(24.dp))
+                                    Text(
+                                        text = "${detailPm.data?.nama_kluster}",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 12.sp,
+                                        color = Color.White
+                                    )
+                                    if (!detailAssesment.data?.nama_sumber_kasus.isNullOrEmpty()) {
+                                        Spacer(modifier = Modifier.width(24.dp))
+                                        Text(
+                                            text = "|",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontSize = 12.sp,
+                                            color = Color.White
+                                        )
+                                        Spacer(modifier = Modifier.width(24.dp))
+                                        Text(
+                                            text = "${detailAssesment.data?.nama_sumber_kasus}",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontSize = 12.sp,
+                                            color = Color.White
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(14.dp))
                     Surface(
                         Modifier
                             .fillMaxWidth()
@@ -459,7 +525,11 @@ val pmAssesmen = remember {
                                         url = pmAssesmen.value,
                                         onLoading = onLoadingPm
                                     ) {
-                                        Toast.makeText(context,"Penambahan PM berhasil",Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Penambahan PM berhasil",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         idUser.value = it.data?.id.toString()
                                         runBlocking {
                                             checkListPm.value = true
@@ -488,9 +558,12 @@ val pmAssesmen = remember {
                                         idUser = idUser.value,
                                         lat = lat.value,
                                         long = long.value,
-                                        onLoadingAssesmen = onLoadingAssesmen
-                                    ) {
-                                        Toast.makeText(context,"Penambahan assesmen berhasil",Toast.LENGTH_SHORT).show()
+                                        onLoadingAssesmen = onLoadingAssesmen) {
+                                        Toast.makeText(
+                                            context,
+                                            "Penambahan assesmen berhasil",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         idAssesment.intValue = it
                                         runBlocking {
                                             checkListAssesment.value = true
@@ -499,10 +572,11 @@ val pmAssesmen = remember {
                                         }
                                     }
                                 }
+
                                 else -> {
                                     AtensiForm(
-                                        vm =atensiVm ,
-                                        showPermission = showPermissionAtensi ,
+                                        vm = atensiVm,
+                                        showPermission = showPermissionAtensi,
                                         capturedImagebyUri = capturedImagebyUriAtensi,
                                         context = context,
                                         idUser = idUser.value,
@@ -512,7 +586,11 @@ val pmAssesmen = remember {
                                         long = long.value,
                                         onLoadingAtensi = onLoadingAtensi
                                     ) {
-                                        Toast.makeText(context,"Penambahan atensi berhasil",Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            context,
+                                            "Penambahan atensi berhasil",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         navController.popBackStack()
                                     }
                                 }
@@ -741,17 +819,17 @@ val pmAssesmen = remember {
 
 @Composable
 fun AtensiForm(
-    vm:DetailAtensiViewModel,
-    showPermission:MutableState<Boolean>,
-    capturedImagebyUri:MutableState<Uri>,
-    context:Context,
+    vm: DetailAtensiViewModel,
+    showPermission: MutableState<Boolean>,
+    capturedImagebyUri: MutableState<Uri>,
+    context: Context,
     idUser: String,
-    idAssesmen:Int,
-    urlAtensi:String,
-    lat:String,
-    long:String,
+    idAssesmen: Int,
+    urlAtensi: String,
+    lat: String,
+    long: String,
     onLoadingAtensi: MutableState<Boolean>,
-    onClick:() -> Unit
+    onClick: () -> Unit
 ) {
     vm.getJenisAtensi()
     vm.getPendekatanAtensi()
@@ -791,11 +869,11 @@ fun AtensiForm(
     }
     val dropDownAtensi = DropDownAtensi(vm)
     val scrollState = rememberScrollState()
-    Column (
+    Column(
         Modifier
             .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
             .verticalScroll(scrollState)
-            ) {
+    ) {
         Surface(
             Modifier
                 .fillMaxWidth()
@@ -843,18 +921,20 @@ fun AtensiForm(
             }
         }
         Spacer(modifier = Modifier.height(14.dp))
-        DropdownField(kategoriPpks = jenisAtens ,
-            label = "Jenis Atensi" ,
+        DropdownField(
+            kategoriPpks = jenisAtens,
+            label = "Jenis Atensi",
             stringText = jenisAtensString.value,
             modifier = Modifier
-                .fillMaxWidth()) {
+                .fillMaxWidth()
+        ) {
             dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
                 getString = { item, index ->
                     jenisAtensString.value = item
                     idJenis.intValue = index
-                } )
+                })
         }
-        AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
+        AnimatedVisibility(visible = jenisAtensString.value.isEmpty()) {
             Column {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -896,18 +976,20 @@ fun AtensiForm(
             }
         }
         Spacer(modifier = Modifier.height(14.dp))
-        DropdownField(kategoriPpks = pendekatanAtens ,
-            label = "Pendekatan Atensi" ,
+        DropdownField(
+            kategoriPpks = pendekatanAtens,
+            label = "Pendekatan Atensi",
             stringText = pendekatanAtensString.value,
             modifier = Modifier
-                .fillMaxWidth() ) {
+                .fillMaxWidth()
+        ) {
             dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
                 getString = { item, index ->
                     pendekatanAtensString.value = item
                     idPendekatan.intValue = index
-                } )
+                })
         }
-        AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
+        AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty()) {
             Column {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
@@ -942,9 +1024,9 @@ fun AtensiForm(
         }) {
             vm.addAtensi(
                 AtensiBody(
-                    foto = urlAtensi,
+                    foto = if (urlAtensi == "0") null else urlAtensi,
                     id_assesment = idAssesmen.toInt(),
-                    id_jenis =idJenis.intValue,
+                    id_jenis = idJenis.intValue,
                     id_pendekatan = idPendekatan.intValue,
                     id_pm = idUser.toInt(),
                     jenis = jenis.value,
@@ -954,7 +1036,8 @@ fun AtensiForm(
                     penerima = penerima.value,
                     tanggal = tanggalAtensi.value,
                 ),
-                onLoadingAtensi = onLoadingAtensi
+                onLoadingAtensi = onLoadingAtensi,
+                onFailure = {}
             ) {
                 onClick.invoke()
 
@@ -964,6 +1047,7 @@ fun AtensiForm(
 
     }
 }
+
 @Composable
 fun FormAssesment(
     showPermissionRumah: MutableState<Boolean>,
@@ -974,17 +1058,17 @@ fun FormAssesment(
     capturedImagebyUriKk: MutableState<Uri>,
     capturedImagebyUriRumah: MutableState<Uri>,
     capturedImagebyUriKtp: MutableState<Uri>,
-    onLoadingAssesmen:MutableState<Boolean>,
+    onLoadingAssesmen: MutableState<Boolean>,
     vm: FormPmViewModel,
     asVm: AssesmenViewModel,
-    urlFisik:String,
-    urlKk:String,
-    urlRumah:String,
-    urlKtp:String,
-    idUser:String,
-    lat:String,
-    long:String,
-    onSuccess:(Int) -> Unit
+    urlFisik: String,
+    urlKk: String,
+    urlRumah: String,
+    urlKtp: String,
+    idUser: String,
+    lat: String,
+    long: String,
+    onSuccess: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val pdfUri = remember {
@@ -1090,7 +1174,9 @@ fun FormAssesment(
     val formWajib = remember {
         mutableStateOf(false)
     }
-
+    val urlPdf = remember {
+        mutableStateOf("")
+    }
     formWajib.value = sumberString.value.isEmpty()
     val dropDownCompose = DropdownCompose(vm, asVm)
 
@@ -1307,7 +1393,7 @@ fun FormAssesment(
                 .fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(14.dp))
-        FilledTextField(
+        NikFilledText(
             textString = nikIbu,
             label = "NIK Ibu",
             imeAction = ImeAction.Default,
@@ -1348,7 +1434,24 @@ fun FormAssesment(
         Spacer(modifier = Modifier.height(14.dp))
         PickPdfFile(urri = pdfUri, onPdfPicked = { uri ->
             pdfUri.value = uri
-        })
+            runBlocking {
+                try {
+                    val stream = context.contentResolver.openInputStream(uri) ?: return@runBlocking
+                    val request = RequestBody.create("application/pdf".toMediaTypeOrNull(), stream.readBytes())
+                    val filePart = MultipartBody.Part.createFormData(
+                        "file",
+                        "test.pdf",
+                        request
+                    )
+                    asVm.addAssesmenFile(filePart) {
+                        urlPdf.value = it.file_url!!
+                    }
+                } catch (e:Exception) {
+                    Log.d("ERROR KENAPA NICH",e.toString())
+                }
+            }
+        },
+            url = urlPdf.value)
         Spacer(modifier = Modifier.height(14.dp))
         ButtonPrimary(text = {
             Row(
@@ -1377,10 +1480,10 @@ fun FormAssesment(
                 asVm.addAssesmen(
                     AssesmentBody(
                         catatan = catatan.value,
-                        foto_kk = urlKk,
-                        foto_kondisi_fisik = urlFisik,
-                        foto_ktp = urlKtp,
-                        foto_rumah = urlRumah,
+                        foto_kk = if (urlKk == "0") null else urlKk,
+                        foto_kondisi_fisik = if(urlFisik == "0") null else urlFisik,
+                        foto_ktp = if(urlKtp == "0") null else urlKtp,
+                        foto_rumah = if (urlRumah == "0") null else urlRumah,
                         id_kerja_ortu = if (pekerjaanOrtuInt.intValue.equals(0)) null else pekerjaanOrtuInt.intValue,
                         id_lembaga = 1,
                         id_pekerjaan = if (pekerjaanInt.intValue.equals(0)) null else pekerjaanInt.intValue,
@@ -1396,9 +1499,10 @@ fun FormAssesment(
                         nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
                         nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
                         petugas = if (petugas.value.isEmpty()) null else petugas.value,
-                        status_dtks = if (dtks.value.isEmpty()) null else dtks.value ,
+                        status_dtks = if (dtks.value.isEmpty()) null else dtks.value,
                         tanggal = tanggalLahir.value,
-                        flag = 1
+                        penghasilan = if (penghasilan.value.isEmpty()) null else penghasilan.value.toLong(),
+                        file_lap = urlPdf.value
                     ),
                     onLoadingAssesmen = onLoadingAssesmen
                 ) {
@@ -1409,3 +1513,4 @@ fun FormAssesment(
         }
     }
 }
+

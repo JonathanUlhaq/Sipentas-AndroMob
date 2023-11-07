@@ -4,9 +4,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.net.Uri
 import android.provider.OpenableColumns
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,9 +27,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +43,8 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,11 +66,18 @@ import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
 import com.example.sipentas.component.DropdownField
 import com.example.sipentas.component.FilledTextField
+import com.example.sipentas.component.OutlineButtonPrimary
 import com.example.sipentas.models.AssesmentBody
+import com.example.sipentas.models.verifikasi_atensi.VerifikasiAtensiList
+import com.example.sipentas.navigation.AppRoute
 import com.example.sipentas.utils.CameraView
+import com.example.sipentas.utils.ComposeDialog
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
+import com.example.sipentas.utils.LoadingDialog
+import com.example.sipentas.utils.LocationProviders
 import com.example.sipentas.utils.RequestCameraPermission
+import com.example.sipentas.utils.UploadStreamRequestBody
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.form_pm.FormPmViewModel
@@ -70,8 +86,13 @@ import id.zelory.compressor.Compressor
 import id.zelory.compressor.constraint.default
 import id.zelory.compressor.constraint.destination
 import kotlinx.coroutines.runBlocking
+import me.saket.swipe.SwipeAction
+import me.saket.swipe.SwipeableActionsBox
+import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.File
 import java.util.concurrent.Executors
@@ -107,13 +128,25 @@ fun DetailAssessmentView(
     curNikIbu:String,
     curNamaWali:String,
     curPenghasilan:String,
-    curCatatan:String
+    curCatatan:String,
+    id:String,
+    idPm:String,
+    longCur:String,
+    latCur:String,
+    elap:String
 ) {
     asVm.getPendidikan()
     asVm.getSumber()
     asVm.getPekerjaan()
     asVm.getStatusOrtu()
     asVm.getTempatTinggal()
+    asVm.getAtensiAssesment(id.toInt())
+
+    val atensi = asVm.atensiAssesment.collectAsState().value
+    val currentIndex = remember {
+        mutableIntStateOf(0)
+    }
+
     val scrollState = rememberScrollState()
     val pendidikan = remember {
         mutableStateOf(false)
@@ -245,6 +278,9 @@ fun DetailAssessmentView(
     val urlFisik = remember {
         mutableStateOf(urlFisiks)
     }
+    val urlPdf = remember {
+        mutableStateOf(elap)
+    }
     val urlKk = remember {
         mutableStateOf(urlKks)
     }
@@ -256,13 +292,13 @@ fun DetailAssessmentView(
     }
 
     val idUser = remember {
-        mutableStateOf("")
+        mutableStateOf(idPm)
     }
     val lat = remember {
-        mutableStateOf("")
+        mutableStateOf(latCur)
     }
     val long = remember {
-        mutableStateOf("")
+        mutableStateOf(longCur)
     }
     val dropDownCompose = DropdownCompose(vm, asVm)
     val pendidikanInt = remember {
@@ -316,7 +352,30 @@ fun DetailAssessmentView(
     }
 
     formWajib.value = sumberString.value.isEmpty()
+    val confirmDelete = remember {
+        mutableStateOf(false)
+    }
 
+    val isLoading = remember {
+        mutableStateOf(false)
+    }
+    LoadingDialog(boolean = isLoading)
+
+    ComposeDialog(
+        title = "Hapus Data",
+        desc = " Apakah anda yakin menghapus data ini ?",
+        boolean = confirmDelete
+    ) {
+        Log.d("GET IDNYA",currentIndex.value.toString())
+        asVm.deleteAtensi(currentIndex.value,isLoading, {
+            Toast.makeText(context,"Tidak bisa dihapus, masih ada residensial  yang menggunakan id atensi ini",Toast.LENGTH_SHORT).show()
+            confirmDelete.value = false
+        }) {
+            Toast.makeText(context,"Data Berhasil dihapus",Toast.LENGTH_SHORT).show()
+            asVm.getAtensiAssesment(id.toInt())
+            confirmDelete.value = false
+        }
+    }
 
     if (showPermissionKtp.value) {
         RequestCameraPermission(
@@ -331,6 +390,29 @@ fun DetailAssessmentView(
         )
     }
 
+
+
+    val getLocation = remember {
+        mutableStateOf(false)
+    }
+
+    val currentLocationAction = remember {
+        mutableStateOf(false)
+    }
+
+    val location = LocationProviders(context)
+    if (getLocation.value) {
+        location.LocationPermission(lat = lat, long = long).let {
+            getLocation.value =false
+            location.getLastKnownLocation(success = {
+                getLocation.value =false
+            }) {
+
+            }
+
+        }
+    }
+    Log.d("STATUSNYA ORTU,",statusOrtuString.value)
    Box {
 
        Scaffold(
@@ -381,6 +463,38 @@ fun DetailAssessmentView(
                                .offset(y= -10.dp))
                    }
                }
+           },
+           floatingActionButton = {
+
+               val iconState by animateIntAsState(targetValue = if (!currentLocationAction.value) R.drawable.current_location else R.drawable.close_icon)
+
+              if (isEdit.value) {
+                  FloatingActionButton(onClick = { if (isEdit.value) {
+                  when(currentLocationAction.value) {
+                      false -> {
+                          getLocation.value =true
+                          currentLocationAction.value = true
+                      }
+                      else -> {
+                          getLocation.value = false
+                          currentLocationAction.value =false
+                          lat.value = latCur
+                          long.value = longCur
+                      }
+                  }
+                  }
+                  },
+                      shape = CircleShape,
+                      containerColor = Color(0xFF00A7C0)) {
+                      Icon(
+                          painter = painterResource(id = iconState),
+                          contentDescription = null,
+                          tint = Color.White,
+                          modifier = Modifier
+                              .size(14.dp)
+                      )
+                  }
+              }
            }
        ) {
            Surface(
@@ -400,12 +514,14 @@ fun DetailAssessmentView(
                    ) {
                        com.example.sipentas.view.form_assessment.FotoBox(
                            showPermissionRumah, capturedImagebyUriRumah, Modifier
-                               .fillMaxWidth(0.5f), "Rumah",urlRumah.value
+                               .fillMaxWidth(0.5f), "Rumah",urlRumah.value,
+                           isEdit = isEdit.value
                        )
                        Spacer(modifier = Modifier.width(4.dp))
                        com.example.sipentas.view.form_assessment.FotoBox(
                            showPermissionFisik, capturedImagebyUriFisik, Modifier
-                               .fillMaxWidth(), "Kondisi Fisik",urlFisik.value
+                               .fillMaxWidth(), "Kondisi Fisik",urlFisik.value,
+                           isEdit = isEdit.value
                        )
                    }
                    Spacer(modifier = Modifier.height(14.dp))
@@ -415,12 +531,14 @@ fun DetailAssessmentView(
                    ) {
                        com.example.sipentas.view.form_assessment.FotoBox(
                            showPermissionKk, capturedImagebyUriKk, Modifier
-                               .fillMaxWidth(0.5f), "KK",urlKk.value
+                               .fillMaxWidth(0.5f), "KK",urlKk.value,
+                           isEdit = isEdit.value
                        )
                        Spacer(modifier = Modifier.width(4.dp))
                        com.example.sipentas.view.form_assessment.FotoBox(
                            showPermissionKtp, capturedImagebyUriKtp, Modifier
-                               .fillMaxWidth(), "KTP",urlKtp.value
+                               .fillMaxWidth(), "KTP",urlKtp.value,
+                           isEdit = isEdit.value
                        )
                    }
                    Spacer(modifier = Modifier.height(14.dp))
@@ -657,70 +775,132 @@ fun DetailAssessmentView(
 //                    Foto
                    Spacer(modifier = Modifier.height(14.dp))
                    com.example.sipentas.view.form_assessment.PickPdfFile(
+                       isEdit.value,
                        urri = pdfUri,
                        onPdfPicked = { uri ->
                            pdfUri.value = uri
-                       })
+                           runBlocking {
+                               try {
+                                   val stream = context.contentResolver.openInputStream(uri) ?: return@runBlocking
+                                   val request = RequestBody.create("application/pdf".toMediaTypeOrNull(), stream.readBytes())
+                                   val filePart = MultipartBody.Part.createFormData(
+                                       "file",
+                                       "test.pdf",
+                                       request
+                                   )
+                                   asVm.addAssesmenFile(filePart) {
+                                   urlPdf.value = it.file_url!!
+                               }
+                               } catch (e:Exception) {
+                                   Log.d("ERROR KENAPA NICH",e.toString())
+                               }
+                           }
+//
+                       },
+                       url = urlPdf.value)
                    Spacer(modifier = Modifier.height(14.dp))
                    AnimatedVisibility(visible = isEdit.value) {
-                       ButtonPrimary(text = {
-                           Row(
-                               verticalAlignment = Alignment.CenterVertically
-                           ) {
-                               Text(
-                                   text = "Kirim Form",
-                                   style = MaterialTheme.typography.titleMedium,
-                                   modifier = Modifier
-                                       .padding(top = 6.dp, bottom = 6.dp),
-                                   fontSize = 14.sp
-                               )
-                               Spacer(modifier = Modifier.width(10.dp))
-                               Icon(
-                                   painter = painterResource(id = R.drawable.send_icon),
-                                   contentDescription = null,
-                                   tint = Color.White,
-                                   modifier = Modifier
-                                       .size(14.dp)
-                               )
-                           }
-                       }) {
+                      Column {
+                          ButtonPrimary(text = {
+                              Row(
+                                  verticalAlignment = Alignment.CenterVertically
+                              ) {
+                                  Text(
+                                      text = "Ubah Data",
+                                      style = MaterialTheme.typography.titleMedium,
+                                      modifier = Modifier
+                                          .padding(top = 6.dp, bottom = 6.dp),
+                                      fontSize = 14.sp
+                                  )
+                              }
+                          }) {
+                              if (!formWajib.value) {
+                                asVm.updateAssesment(id.toInt(), body =
+                                AssesmentBody(
+                                    catatan = catatan.value,
+                                    foto_kk = if (urlKk.value == "0"|| urlKk.value == "url" || urlKk.value == "url foto") null else urlKk.value,
+                                    foto_kondisi_fisik = if (urlFisik.value == "0" || urlFisik.value == "url" || urlFisik.value == "url foto") null else urlFisik.value,
+                                    foto_ktp = if (urlKtp.value == "0" || urlKtp.value == "url" || urlKtp.value == "url foto") null else urlKtp.value,
+                                    foto_rumah = if (urlRumah.value == "0" || urlRumah.value == "url" || urlRumah.value == "url foto") null else urlRumah.value,
+                                    id_kerja_ortu = if (pekerjaanOrtuInt.intValue.equals(0)) null else pekerjaanOrtuInt.intValue,
+                                    id_lembaga = 1,
+                                    id_pekerjaan = if (pekerjaanInt.intValue.equals(0)) null else pekerjaanInt.intValue,
+                                    id_pendidikan = if (pendidikanInt.intValue.equals(0)) null else pendidikanInt.intValue,
+                                    id_pm = idPm.toInt(),
+                                    id_status_ortu = if (statusInt.intValue.equals(0)) null else statusInt.intValue,
+                                    id_sumber_kasus = sumberInt.intValue,
+                                    id_tempat_tgl = if (tempatTinggalInt.intValue.equals(0)) null else tempatTinggalInt.intValue,
+                                    lat = lat.value,
+                                    long = long.value,
+                                    nama_bpk = if (namaBapak.value.isEmpty()) null else namaBapak.value,
+                                    nama_ibu = if (namaIbu.value.isEmpty()) null else namaIbu.value,
+                                    nama_wali = if (namaWali.value.isEmpty()) null else namaWali.value,
+                                    nik_ibu = if (nikIbu.value.isEmpty()) null else nikIbu.value,
+                                    petugas = if (petugas.value.isEmpty()) null else petugas.value,
+                                    status_dtks = if (dtks.value.isEmpty()) null else dtks.value,
+                                    tanggal = tanggalLahir.value,
+                                    penghasilan = if (penghasilan.value.isEmpty()) null else penghasilan.value.toLong(),
+                                    file_lap = urlPdf.value
+                                ),
+                                loading = isLoading) {
+                                    Toast.makeText(context,"Assesment berhasil diubah",Toast.LENGTH_SHORT).show()
+                                    navController.popBackStack()
+                                }
 
-                           if (!formWajib.value
-                               && urlKk.value.isNotEmpty()
-                               && urlRumah.value.isNotEmpty()
-                               && urlFisik.value.isNotEmpty()
-                               && urlKtp.value.isNotEmpty()
-                           ) {
-//                            asVm.addAssesmen(
-//                                AssesmentBody(
-//                                    catatan = catatan.value,
-//                                    foto_kk = urlKk.value,
-//                                    foto_kondisi_fisik = urlFisik.value,
-//                                    foto_ktp = urlKtp.value,
-//                                    foto_rumah = urlRumah.value,
-//                                    id_kerja_ortu = pekerjaanOrtuInt.intValue,
-//                                    id_lembaga = 1,
-//                                    id_pekerjaan = pekerjaanInt.intValue,
-//                                    id_pendidikan = pendidikanInt.intValue,
-//                                    id_pm = idUser.value.toInt(),
-//                                    id_status_ortu = statusInt.intValue,
-//                                    id_sumber_kasus = sumberInt.intValue,
-//                                    id_tempat_tgl = tempatTinggalInt.intValue,
-//                                    lat = lat.value,
-//                                    long = long.value,
-//                                    nama_bpk = namaBapak.value,
-//                                    nama_ibu = namaIbu.value,
-//                                    nama_wali = namaWali.value,
-//                                    nik_ibu = nikIbu.value,
-//                                    petugas = petugas.value,
-//                                    status_dtks = "status_dtks",
-//                                    tanggal = tanggalLahir.value,
-//                                    flag = 0
-//                                )
-//                            )
+                              }
+                          }
+                          Spacer(modifier = Modifier.height(10.dp))
+                          OutlineButtonPrimary(text = {
+                              Text(
+                                  text = "Tambah Atensi",
+                                  style = MaterialTheme.typography.titleMedium,
+                                  modifier = Modifier
+                                      .padding(top = 6.dp, bottom = 6.dp),
+                                  fontSize = 14.sp
+                              )
+                          }) {
+                                navController.navigate(AppRoute.AddAtensi.route+"/$idPm/$id")
+                          }
 
-                           }
-                       }
+                          if (!atensi.rows.isNullOrEmpty()) {
+                              Spacer(modifier = Modifier.height(10.dp))
+                              Divider( color = Color(0xFF8f8f8f))
+                              Spacer(modifier = Modifier.height(6.dp))
+                              Text(
+                                  text = "List Atensi",
+                                  style = MaterialTheme.typography.titleMedium,
+                                  modifier = Modifier
+                                      .padding(top = 6.dp, bottom = 6.dp),
+                                  fontSize = 12.sp,
+                                  color = Color(0xFF8f8f8f)
+                              )
+                              atensi.rows.forEach {
+                                  item ->
+                                  val delete = SwipeAction(
+                                      icon = painterResource(id = R.drawable.icon_delete),
+                                      background = Color(0xFFEF3131),
+                                      onSwipe = {
+                                          currentIndex.intValue = item.id_atensi!!.toInt()
+                                          confirmDelete.value = true
+                                      }
+                                  )
+                                  SwipeableActionsBox(
+                                      endActions = listOf(delete),
+                                      modifier = Modifier
+                                          .clip(RoundedCornerShape(6.dp))
+                                  ) {
+                                      ListAtensiAssesment(
+                                          navController,
+                                          item,
+                                          item.id_atensi,
+                                          item.id_pendekatan_atensi
+                                      )
+                                  }
+
+                                  Spacer(modifier = Modifier.height(14.dp))
+                              }
+                          }
+                      }
                    }
                }
            }
@@ -868,6 +1048,85 @@ fun DetailAssessmentView(
            )
        }
    }
+}
+
+@Composable
+private fun ListAtensiAssesment(
+    navController: NavController,
+    item: VerifikasiAtensiList,
+    id_atensi: Int?,
+    id_pendekatan_atensi: Int?
+) {
+    Surface(
+        color = Color(0xFFF8F8F8),
+        shape = RoundedCornerShape(6.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(6.dp))
+            .clickable {
+                try {
+                    navController.navigate(
+                        AppRoute.DetailAtensi.route
+                                + "/${if (!item.lat.isNullOrEmpty()) item.lat else "0"}"
+                                + "/${if (!item.long.isNullOrEmpty()) item.long else "0"}"
+                                + "/${if (!item.id_pm.isNullOrEmpty()) item.id_pm else "0"}"
+                                + "/${if (!item.id_assessment.isNullOrEmpty()) item.id_assessment else "0"}"
+                                + "/${if (!item.nama_pm.isNullOrEmpty()) item.nama_pm else "0"}"
+                                + "/${if (!item.nik_pm.isNullOrEmpty()) item.nik_pm else "0"}"
+                                + "/${if (!item.petugas_assesmen.isNullOrEmpty()) item.petugas_assesmen else "0"}"
+                                + "/${if (!item.tanggal_assesmen.isNullOrEmpty()) item.tanggal_assesmen else "0"}"
+                                + "/${if (item.id_atensi != null) id_atensi else "0"}"
+                                + "/${if (!item.nama_jenis_atensi.isNullOrEmpty()) item.nama_jenis_atensi else "0"}"
+                                + "/${if (!item.id_jenis_atensi.isNullOrEmpty()) item.id_jenis_atensi else "0"}"
+                                + "/${if (!item.jenis.isNullOrEmpty()) item.jenis else "0"}"
+                                + "/${if (!item.nilai.isNullOrEmpty()) item.nilai else "0"}"
+                                + "/${if (!item.tanggal.isNullOrEmpty()) item.tanggal else "0"}"
+                                + "/${if (!item.nama_pendekatan_atensi.isNullOrEmpty()) item.nama_pendekatan_atensi else "0"}"
+                                + "/${if (item.id_pendekatan_atensi != null) id_pendekatan_atensi else "0"}"
+                                + "/${if (!item.penerima.isNullOrEmpty()) item.penerima else "0"}"
+                                + "?url_atensi=${if (!item.foto.isNullOrEmpty()) item.foto else "0"}"
+                    )
+                } catch (e: Exception) {
+                    Log.e("ERORR NAVIGASI ATENSI", e.toString())
+                }
+            }
+    ) {
+        Row(
+            Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                Text(
+                    text = item.nama_pm!!,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontSize = 12.sp,
+                    color = Color(0xFF515151)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = item.id_atensi!!.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 10.sp,
+                    color = Color(0xFFC3C3C3)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${if (item.tanggal_assesmen != null) item.tanggal_assesmen else " "}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontSize = 10.sp,
+                    color = Color(0xFFC3C3C3)
+                )
+            }
+            Text(
+                text = "${item.petugas_assesmen}",
+                style = MaterialTheme.typography.bodyMedium,
+                fontSize = 10.sp,
+                color = Color(0xFFC3C3C3)
+            )
+        }
+    }
 }
 
 @Composable

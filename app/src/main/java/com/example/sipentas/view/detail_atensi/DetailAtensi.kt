@@ -1,9 +1,11 @@
 package com.example.sipentas.view.detail_atensi
 
 import android.net.Uri
+import android.util.Log
 import android.widget.Space
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,24 +26,31 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +61,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import coil.compose.rememberImagePainter
 import com.example.sipentas.R
 import com.example.sipentas.component.ButtonPrimary
@@ -89,12 +99,26 @@ fun DetailAtens(
     penerimaNama:String,
     nik:String,
     petugas:String,
-    tanggal:String
+    tanggal:String,
+    idAtensi:String,
+    urlAtensi:String,
+    jenAtensi:String,
+    idJens:String,
+    jenis:String,
+    curNilai:String,
+    tanggalAten:String,
+    pendekatanAten:String,
+    idPendekt:String,
+    penerima:String,
+    latCur:String,
+    longCur:String
 
 ) {
 
     vm.getJenisAtensi()
     vm.getPendekatanAtensi()
+//    vm.getDetailAtensi(idAtensi.toInt())
+//    val detailState = vm.detailAtensi.collectAsState().value
 
     val atensi = listOf(
         "Perawatan Keluarga"
@@ -115,19 +139,19 @@ fun DetailAtens(
     }
 
     val jenis = remember {
-        mutableStateOf("")
+        mutableStateOf(if (jenis == "0") "" else jenis)
     }
     val idJenis = remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(idJens.toInt())
     }
     val nilai = remember {
-        mutableStateOf("")
+        mutableStateOf(if (curNilai == "0") "" else curNilai)
     }
     val tanggalAtensi = remember {
-        mutableStateOf("")
+        mutableStateOf(if (tanggalAten == "0") "" else tanggalAten)
     }
     val penerima = remember {
-        mutableStateOf("")
+        mutableStateOf(if (penerima == "0") "" else penerima)
     }
     val addForm = remember {
         mutableStateOf(false)
@@ -137,21 +161,22 @@ fun DetailAtens(
         mutableStateOf(false)
     }
     val jenisAtensString = remember {
-        mutableStateOf("")
+        mutableStateOf(if (jenAtensi == "0") "" else jenAtensi)
     }
     val pendekatanAtens = remember {
         mutableStateOf(false)
     }
     val pendekatanAtensString = remember {
-        mutableStateOf("")
+        mutableStateOf(if (pendekatanAten == "0") "" else pendekatanAten)
     }
     val idPendekatan = remember {
-        mutableIntStateOf(0)
+        mutableIntStateOf(idPendekt.toInt())
     }
     val urlAtensi = remember {
-        mutableStateOf("url")
+        mutableStateOf(urlAtensi)
     }
 
+    Log.d("URLNYA ADALAHH",urlAtensi.value)
     val context = LocalContext.current
 
     val location = LocationProviders(context)
@@ -175,8 +200,8 @@ fun DetailAtens(
     val locationPermission = remember {
         mutableStateOf(false)
     }
-    LaunchedEffect(Unit) {
-        locationPermission.value =true
+    val isEdit = remember {
+        mutableStateOf(false)
     }
     if (locationPermission.value) {
         location.LocationPermission(lat = lat, long = long).let {
@@ -192,10 +217,45 @@ fun DetailAtens(
     LoadingDialog(boolean = onLoadingAtensi)
     val output: File = getOutputDirectory(context)
     val cameraExecutor = Executors.newSingleThreadExecutor()
+    val currentLocationAction = remember {
+        mutableStateOf(false)
+    }
 
 Box {
 
-    Scaffold {
+    Scaffold (
+        floatingActionButton = {
+            val iconState by animateIntAsState(targetValue = if (!currentLocationAction.value) R.drawable.current_location else R.drawable.close_icon)
+
+            if (isEdit.value) {
+                FloatingActionButton(onClick = { if (isEdit.value) {
+                    when(currentLocationAction.value) {
+                        false -> {
+                            locationPermission.value =true
+                            currentLocationAction.value = true
+                        }
+                        else -> {
+                            locationPermission.value = false
+                            currentLocationAction.value =false
+                            lat.value = latCur
+                            long.value = longCur
+                        }
+                    }
+                }
+                },
+                    shape = CircleShape,
+                    containerColor = Color(0xFF00A7C0)) {
+                    Icon(
+                        painter = painterResource(id = iconState),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(14.dp)
+                    )
+                }
+            }
+        }
+            ) {
         Surface(
             Modifier
                 .padding(it)
@@ -235,11 +295,32 @@ Box {
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.White
                                 )
-                                Text(
-                                    text = "Form",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.Transparent
-                                )
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Switch(
+                                        checked = isEdit.value,
+                                        onCheckedChange = { isEdit.value = it },
+                                        colors = SwitchDefaults.colors(
+                                            checkedBorderColor = Color.Transparent,
+                                            checkedThumbColor = Color(0xFF00A7C0),
+                                            checkedTrackColor = Color(0xFFFFFFFF),
+                                            uncheckedBorderColor = Color.Transparent,
+                                            uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
+                                            uncheckedTrackColor = Color(0xFF8f8f8f)
+                                        ),
+                                        modifier = Modifier
+                                            .scale(0.7f)
+                                    )
+                                    Text(
+                                        text = "Ubah",
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontSize = 10.sp,
+                                        color = Color(0xFF00A7C0),
+                                        modifier = Modifier
+                                            .offset(y = -10.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -290,7 +371,7 @@ Box {
                                     color = Color.Black
                                 )
                                 Text(
-                                    text = "$nik",
+                                    text = "${if(nik == "0") "" else nik}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontSize = 12.sp,
                                     color = Color.Black
@@ -304,7 +385,7 @@ Box {
                             ) {
                                 Column {
                                     Text(
-                                        text = "$tanggal",
+                                        text = "${if(tanggal == "0") "" else tanggal}",
                                         color = Color.Black,
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontSize = 12.sp,
@@ -315,7 +396,7 @@ Box {
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "Petugas: $petugas",
+                                        text = "Petugas: ${if (petugas == "0") "" else petugas}",
                                         color = Color(0xFF8D8D8D),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontSize = 10.sp,
@@ -330,230 +411,254 @@ Box {
                     }
                     Spacer(modifier = Modifier.height(18.dp))
                     LazyColumn(content = {
-                        itemsIndexed(atensi) {
-                                index, item ->
-                            Column {
-                                Divider()
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Surface(
-                                        shape = RoundedCornerShape(4.dp),
-                                        modifier = Modifier
-                                            .width(82.dp)
-                                            .height(45.dp)
-                                    ) {
-                                        Image(painter = painterResource(id = R.drawable.default_photo),
-                                            contentDescription = null,
-                                            contentScale = ContentScale.Crop)
-                                    }
-                                    Spacer(modifier = Modifier.width(12.dp))
-                                    Column {
-                                        Text(text = item,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontSize = 12.sp,
-                                            color = Color.Black)
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                        Text(text = member[index],
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontSize = 10.sp,
-                                            color = Color(0xFFC3C3C3)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Divider()
-                                Spacer(modifier = Modifier.height(12.dp))
-                            }
-                        }
+//                        if (!detailState.data.isNullOrEmpty()) {
+//                            itemsIndexed(detailState.data) {
+//                                    index, item ->
+//                                Column {
+//                                    Divider()
+//                                    Spacer(modifier = Modifier.height(12.dp))
+//                                    Row(
+//                                        verticalAlignment = Alignment.CenterVertically
+//                                    ) {
+//                                        Surface(
+//                                            shape = RoundedCornerShape(4.dp),
+//                                            modifier = Modifier
+//                                                .width(82.dp)
+//                                                .height(45.dp)
+//                                        ) {
+//                                            if (item.foto.isNullOrEmpty() || item.foto == "0" || item.foto == "url") {
+//                                                Image(painter = painterResource(id = R.drawable.default_photo),
+//                                                    contentDescription = null,
+//                                                    contentScale = ContentScale.Crop)
+//                                            } else {
+//                                                AsyncImage(model = item.foto,
+//                                                    contentDescription = null,
+//                                                    contentScale = ContentScale.Crop,
+//                                                    modifier = Modifier
+//                                                        .fillMaxSize())
+//                                            }
+//
+//                                        }
+//                                        Spacer(modifier = Modifier.width(12.dp))
+//                                        Column {
+//                                            Text(text = "${item.nama_pm}",
+//                                                style = MaterialTheme.typography.titleMedium,
+//                                                fontSize = 12.sp,
+//                                                color = Color.Black)
+//                                            Spacer(modifier = Modifier.height(2.dp))
+//                                            Text(text = "${item.nama_jenis_atensi}",
+//                                                style = MaterialTheme.typography.bodyMedium,
+//                                                fontSize = 10.sp,
+//                                                color = Color(0xFFC3C3C3)
+//                                            )
+//                                        }
+//                                    }
+//                                    Spacer(modifier = Modifier.height(12.dp))
+//                                    Divider()
+//                                    Spacer(modifier = Modifier.height(12.dp))
+//                                }
+//                            }
+//                        }
                         item {
-                            AnimatedVisibility(visible = !addForm.value) {
-                                ButtonPrimary(text = {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = "Tambah Atensi",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            modifier = Modifier
-                                                .padding(top = 6.dp, bottom = 6.dp),
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                }) {
-                                    addForm.value = true
-                                }
-                            }
-                            AnimatedVisibility(visible = addForm.value) {
-                                Column {
-                                    Surface(
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .height(180.dp),
-                                        color = Color(0xFFEB9B4B),
-                                        shape = RoundedCornerShape(16.dp),
-                                    ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clickable {
+                            Column {
+                                Surface(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(180.dp),
+                                    color = Color(0xFFEB9B4B),
+                                    shape = RoundedCornerShape(16.dp),
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clickable {
+                                                if (isEdit.value) {
                                                     showPermission.value = true
                                                 }
-                                                .wrapContentSize(Alignment.Center)
-
-                                        ) {
-                                            if (capturedImagebyUri.value.path?.isNotEmpty() == true) {
-                                                Image(
-                                                    painter = rememberImagePainter(capturedImagebyUri.value),
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                )
-                                            } else {
-                                                Column(
-                                                    Modifier
-                                                        .fillMaxWidth(),
-                                                    horizontalAlignment = Alignment.CenterHorizontally
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(id = R.drawable.camera_icon),
-                                                        contentDescription = null,
-                                                        modifier = Modifier
-                                                            .size(28.dp)
-                                                    )
-                                                    Spacer(modifier = Modifier.height(12.dp))
-                                                    Text(
-                                                        text = "Foto Atensi",
-                                                        style = MaterialTheme.typography.titleMedium,
-                                                        color = Color.White
-                                                    )
-                                                }
                                             }
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    DropdownField(kategoriPpks = jenisAtens ,
-                                        label = "Jenis Atensi" ,
-                                        stringText = jenisAtensString.value,
-                                        modifier = Modifier
-                                            .fillMaxWidth()) {
-                                        dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
-                                            getString = { item, index ->
-                                                jenisAtensString.value = item
-                                                idJenis.intValue = index
-                                            } )
-                                    }
-                                    AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
-                                        Column {
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = "* Jenis Atensi wajib diisi",
-                                                fontSize = 10.sp,
-                                                color = Color.Red
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    FilledTextField(
-                                        textString = jenis,
-                                        label = "Jenis",
-                                        imeAction = ImeAction.Default,
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    FilledTextField(
-                                        textString = nilai,
-                                        label = "Nilai",
-                                        imeAction = ImeAction.Default,
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        keyboardType = KeyboardType.Number
-                                    )
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    DatePicker(context = context, date = tanggalAtensi, label = "Tanggal Atensi")
-                                    AnimatedVisibility(visible = tanggalAtensi.value.isEmpty()) {
-                                        Column {
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = "* Tanggal Atensi wajib diisi",
-                                                fontSize = 10.sp,
-                                                color = Color.Red
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    DropdownField(kategoriPpks = pendekatanAtens ,
-                                        label = "Pendekatan Atensi" ,
-                                        stringText = pendekatanAtensString.value,
-                                        modifier = Modifier
-                                            .fillMaxWidth() ) {
-                                        dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
-                                            getString = { item, index ->
-                                                pendekatanAtensString.value = item
-                                                idPendekatan.intValue = index
-                                            } )
-                                    }
-                                    AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
-                                        Column {
-                                            Spacer(modifier = Modifier.height(6.dp))
-                                            Text(
-                                                text = "* Pendekatan Atensi wajib diisi",
-                                                fontSize = 10.sp,
-                                                color = Color.Red
-                                            )
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    FilledTextField(
-                                        textString = penerima,
-                                        label = "Penerima",
-                                        imeAction = ImeAction.Default,
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                    )
-                                    Spacer(modifier = Modifier.height(32.dp))
-                                    ButtonPrimary(text = {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = "Tambah Atensi",
-                                                style = MaterialTheme.typography.titleMedium,
-                                                modifier = Modifier
-                                                    .padding(top = 6.dp, bottom = 6.dp),
-                                                fontSize = 14.sp
-                                            )
-                                        }
-                                    }) {
-                                        vm.addAtensi(
-                                            AtensiBody(
-                                                foto = urlAtensi.value,
-                                                id_assesment = idAssesmen.toInt(),
-                                                id_jenis =idJenis.intValue,
-                                                id_pendekatan = idPendekatan.intValue,
-                                                id_pm = idPm.toInt(),
-                                                jenis = jenis.value,
-                                                lat = lat.value,
-                                                long = long.value,
-                                                nilai = if (nilai.value.isEmpty()) "0".toLong() else nilai.value.toLong(),
-                                                penerima = penerima.value,
-                                                tanggal = tanggalAtensi.value,
-                                            ),
-                                            onLoadingAtensi = onLoadingAtensi
-                                        ) {
-                                            Toast.makeText(context,"Atensi berhasil ditambah",Toast.LENGTH_SHORT).show()
-                                        }
-                                    }
-                                    Spacer(modifier = Modifier.height(14.dp))
+                                            .wrapContentSize(Alignment.Center)
 
+                                    ) {
+                                        if (capturedImagebyUri.value.path?.isNotEmpty() == true) {
+                                            Image(
+                                                painter = rememberImagePainter(capturedImagebyUri.value),
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                            )
+                                        } else if (urlAtensi.value.isNullOrEmpty() || urlAtensi.value == "0" || urlAtensi.value == "url") {
+                                            Column(
+                                                Modifier
+                                                    .fillMaxWidth(),
+                                                horizontalAlignment = Alignment.CenterHorizontally
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.camera_icon),
+                                                    contentDescription = null,
+                                                    modifier = Modifier
+                                                        .size(28.dp)
+                                                )
+                                                Spacer(modifier = Modifier.height(12.dp))
+                                                Text(
+                                                    text = "Foto Atensi",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = Color.White
+                                                )
+                                            }
+                                        } else {
+                                            AsyncImage(model = urlAtensi.value,
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize())
+                                        }
+                                    }
                                 }
+                                Spacer(modifier = Modifier.height(14.dp))
+                                DropdownField(kategoriPpks = jenisAtens ,
+                                    label = "Jenis Atensi" ,
+                                    stringText = jenisAtensString.value,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                isEnable = isEdit.value) {
+                                    dropDownAtensi.DropDownJenAtensi(expand = jenisAtens,
+                                        getString = { item, index ->
+                                            jenisAtensString.value = item
+                                            idJenis.intValue = index
+                                        } )
+                                }
+                                AnimatedVisibility(visible = jenisAtensString.value.isEmpty() ) {
+                                    Column {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "* Jenis Atensi wajib diisi",
+                                            fontSize = 10.sp,
+                                            color = Color.Red
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(14.dp))
+                                FilledTextField(
+                                    textString = jenis,
+                                    label = "Jenis",
+                                    imeAction = ImeAction.Default,
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    enabled = isEdit.value
+                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                                FilledTextField(
+                                    textString = nilai,
+                                    label = "Nilai",
+                                    imeAction = ImeAction.Default,
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    keyboardType = KeyboardType.Number,
+                                    enabled = isEdit.value
+                                )
+                                Spacer(modifier = Modifier.height(14.dp))
+                                DatePicker(context = context, date = tanggalAtensi, label = "Tanggal Atensi", boolean = isEdit.value)
+                                AnimatedVisibility(visible = tanggalAtensi.value.isEmpty()) {
+                                    Column {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "* Tanggal Atensi wajib diisi",
+                                            fontSize = 10.sp,
+                                            color = Color.Red
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(14.dp))
+                                DropdownField(kategoriPpks = pendekatanAtens ,
+                                    label = "Pendekatan Atensi" ,
+                                    stringText = pendekatanAtensString.value,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                isEnable = isEdit.value) {
+                                    dropDownAtensi.DropDownPendekatanAtensi(expand = pendekatanAtens,
+                                        getString = { item, index ->
+                                            pendekatanAtensString.value = item
+                                            idPendekatan.intValue = index
+                                        } )
+                                }
+                                AnimatedVisibility(visible = pendekatanAtensString.value.isEmpty() ) {
+                                    Column {
+                                        Spacer(modifier = Modifier.height(6.dp))
+                                        Text(
+                                            text = "* Pendekatan Atensi wajib diisi",
+                                            fontSize = 10.sp,
+                                            color = Color.Red
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(14.dp))
+                                FilledTextField(
+                                    textString = penerima,
+                                    label = "Penerima",
+                                    imeAction = ImeAction.Default,
+                                    singleLine = true,
+                                    modifier = Modifier
+                                        .fillMaxWidth(),
+                                    enabled = isEdit.value
+                                )
+                                AnimatedVisibility(visible = isEdit.value) {
+                                    Column {
+                                        Spacer(modifier = Modifier.height(32.dp))
+                                        ButtonPrimary(text = {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    text = "Ubah Atensi",
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    modifier = Modifier
+                                                        .padding(top = 6.dp, bottom = 6.dp),
+                                                    fontSize = 14.sp
+                                                )
+                                            }
+                                        }) {
+                                       vm.updateAtensi(idAtensi.toInt(), body =  AtensiBody(
+                                           foto = if (urlAtensi.value == "0" || urlAtensi.value == "url") null else urlAtensi.value,
+                                           id_assesment = idAssesmen.toInt(),
+                                           id_jenis =idJenis.intValue,
+                                           id_pendekatan = idPendekatan.intValue,
+                                           id_pm = idPm.toInt(),
+                                           jenis = jenis.value,
+                                           lat = lat.value,
+                                           long = long.value,
+                                           nilai = if (nilai.value.isEmpty()) "0".toLong() else nilai.value.toLong(),
+                                           penerima = penerima.value,
+                                           tanggal = tanggalAtensi.value,
+                                       ), onLoadingAtensi = onLoadingAtensi) {
+                                           Toast.makeText(context,"Atensi berhasil diubah",Toast.LENGTH_SHORT).show()
+                                           navController.popBackStack()
+                                       }
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(14.dp))
+
                             }
+//                            AnimatedVisibility(visible = !addForm.value) {
+//                                ButtonPrimary(text = {
+//                                    Row(
+//                                        verticalAlignment = Alignment.CenterVertically
+//                                    ) {
+//                                        Text(
+//                                            text = "Tambah Atensi",
+//                                            style = MaterialTheme.typography.titleMedium,
+//                                            modifier = Modifier
+//                                                .padding(top = 6.dp, bottom = 6.dp),
+//                                            fontSize = 14.sp
+//                                        )
+//                                    }
+//                                }) {
+//                                    addForm.value = true
+//                                }
+//                            }
                         }
                     })
 

@@ -4,17 +4,34 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sipentas.models.LoginModel
+import com.example.sipentas.models.UserDataResponse
 import com.example.sipentas.repositories.LoginRepository
 import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.lang.Exception
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(val repo: LoginRepository,val prefs:SharePrefs) : ViewModel() {
+
+    private val _userState = MutableStateFlow<List<UserDataResponse>>(emptyList())
+    val userState = _userState.asStateFlow()
+
+    fun getUser() =
+        viewModelScope.launch {
+            try {
+                repo.getUser().let {
+                    item ->
+                    _userState.value = item
+                }
+            } catch (e:Exception) {
+                Log.e("GABISA GET NIH",e.toString())
+            }
+        }
 
     fun login(nik: String, password: String,onError:(Exception) -> Unit,onSuccess:() -> Unit) =
         viewModelScope.launch {

@@ -14,6 +14,7 @@ import androidx.navigation.navArgument
 import com.example.sipentas.view.all_in_form.AllInFormView
 import com.example.sipentas.view.assessment.AssesmenViewModel
 import com.example.sipentas.view.assessment.AssessmentView
+import com.example.sipentas.view.atensi.AddAtensiView
 import com.example.sipentas.view.atensi.Atensi
 import com.example.sipentas.view.change_password.ChangePasswordView
 import com.example.sipentas.view.detail_assessment.DetailAssessmentView
@@ -178,13 +179,30 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
             )
         }
 
+        composable(AppRoute.AddAtensi.route + "/{id}/{idAss}") {
+            showBottomBar.value = false
+          AddAtensiView(navController = navController, vm = detailAtensiVm, idPm = it.arguments?.getString("id")!! , idAssesmen = it.arguments?.getString("idAss")!! )
+        }
+
         composable(AppRoute.DetailAtensi.route
+                + "/{latCur}"
+                + "/{longCur}"
                 + "/{idPm}"
                 + "/{idAssesmen}"
                 + "/{penerima}"
                 + "/{nik}"
                 + "/{petugas}"
                 + "/{tanggal}"
+                + "/{id}"
+                + "/{jenis_atensi}"
+                + "/{idJens}"
+                + "/{jenis}"
+                + "/{nilai}"
+                + "/{tanggal}"
+                + "/{pendekatan}"
+                + "/{idPendek}"
+                + "/{namPer}"
+                + "?url_atensi={url_atensi}"
         ) {
             showBottomBar.value = false
             DetailAtens(navController = navController,
@@ -194,7 +212,19 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 penerimaNama = it.arguments?.getString("penerima")!!,
                 nik = it.arguments?.getString("nik")!!,
                 petugas = it.arguments?.getString("petugas")!!,
-                tanggal = it.arguments?.getString("tanggal")!!
+                tanggal = it.arguments?.getString("tanggal")!!,
+                idAtensi = it.arguments?.getString("id")!!,
+                jenAtensi = it.arguments?.getString("jenis_atensi")!!,
+                idJens = it.arguments?.getString("idJens")!!,
+                jenis = it.arguments?.getString("jenis")!!,
+                curNilai = it.arguments?.getString("nilai")!!,
+                tanggalAten = it.arguments?.getString("tanggal")!!,
+                pendekatanAten = it.arguments?.getString("pendekatan")!!,
+                idPendekt = it.arguments?.getString("idPendek")!!,
+                penerima = it.arguments?.getString("namPer")!!,
+                urlAtensi = it.arguments?.getString("url_atensi")!!,
+                latCur = it.arguments?.getString("latCur")!!,
+                longCur = it.arguments?.getString("longCur")!!
 
             )
 
@@ -207,6 +237,10 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
 
         composable(
             AppRoute.DetailAssessment.route
+                    + "/{long}"
+                    + "/{lat}"
+                    + "/{idPm}"
+                    + "/{id}"
                     + "/{pendidikan}"
                     + "/{pendidikanId}"
                     + "/{sumber}"
@@ -231,7 +265,8 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                     + "urlRumah={urlRumah}?"
                     + "urlFisik={urlFisik}?"
                     + "urlKk={urlKk}?"
-                    + "urlKtp={urlKtp}"
+                    + "urlKtp={urlKtp}?"
+                    + "elap={elap}"
         ) {
             showBottomBar.value = false
             DetailAssessmentView(
@@ -262,7 +297,12 @@ fun NavigationAdapter(navController: NavHostController, showBottomBar: MutableSt
                 curNikIbu = it.arguments?.getString("nikIbu")!!,
                 curNamaWali = it.arguments?.getString("namaWali")!!,
                 curPenghasilan = it.arguments?.getString("penghasilan")!!,
-                curCatatan = it.arguments?.getString("catatan")!!
+                curCatatan = it.arguments?.getString("catatan")!!,
+                id = it.arguments?.getString("id")!!,
+                idPm = it.arguments?.getString("idPm")!!,
+                longCur = it.arguments?.getString("long")!!,
+                latCur = it.arguments?.getString("lat")!!,
+                elap =it.arguments?.getString("elap")!!
             )
         }
 

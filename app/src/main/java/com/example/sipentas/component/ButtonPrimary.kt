@@ -71,12 +71,12 @@ fun OutlineButtonPrimary(
         },
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            contentColor = MaterialTheme.colorScheme.primary
+            containerColor = Color.White,
+            contentColor = Color(0xFF00A7C0)
         ),
         modifier = Modifier
             .fillMaxWidth(),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+        border = BorderStroke(1.dp, Color(0xFF00A7C0))
     ) {
         text.invoke()
     }

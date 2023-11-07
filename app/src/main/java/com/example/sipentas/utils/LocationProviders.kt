@@ -79,6 +79,8 @@ class LocationProviders(private val context: Context) {
                                 }) {
 
                                 }
+                            } else {
+
                             }
                             lat.value = "${location?.latitude}"
                             long.value = "${location?.longitude}"

@@ -15,6 +15,20 @@ class SharePrefs @Inject constructor(@ApplicationContext context: Context) {
         editor.apply()
     }
 
+    fun saveN(nik:String) {
+        val editor = prefs.edit()
+        editor.putString("USER_N",nik)
+        editor.apply()
+    }
+
+    fun savePass(nik:String) {
+        val editor = prefs.edit()
+        editor.putString("USER_N",nik)
+        editor.apply()
+    }
+
+    fun getN():String? = prefs.getString("USER_N",null)
+
     fun getToken():String? =
         prefs.getString("USER_TOKEN",null)
 
