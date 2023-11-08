@@ -74,6 +74,7 @@ import com.example.sipentas.utils.DropDownAtensi
 import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.utils.LocationProviders
+import com.example.sipentas.utils.MapsView
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.form_assessment.PickPdfFile
@@ -192,10 +193,10 @@ fun DetailAtens(
     }
 
     val lat = remember {
-        mutableStateOf("")
+        mutableStateOf(latCur)
     }
     val long = remember {
-        mutableStateOf("")
+        mutableStateOf(longCur)
     }
     val locationPermission = remember {
         mutableStateOf(false)
@@ -271,58 +272,71 @@ Box {
                         color = MaterialTheme.colorScheme.primary,
                         shape = RoundedCornerShape(bottomEnd = 15.dp, bottomStart = 15.dp)
                     ) {
-                        Column {
-                            Row(
-                                Modifier
-                                    .padding(top = 18.dp, start = 16.dp, end = 16.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconButton(onClick = {
-                                    navController.popBackStack()
-                                }) {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.back_icon),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(16.dp),
-                                        tint = Color.White
-                                    )
-                                }
-                                Text(
-                                    text = "Detail Atensi",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = Color.White
-                                )
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                            Column {
+                                Row(
+                                    Modifier
+                                        .padding(top = 18.dp, start = 16.dp, end = 16.dp)
+                                        .fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Switch(
-                                        checked = isEdit.value,
-                                        onCheckedChange = { isEdit.value = it },
-                                        colors = SwitchDefaults.colors(
-                                            checkedBorderColor = Color.Transparent,
-                                            checkedThumbColor = Color(0xFF00A7C0),
-                                            checkedTrackColor = Color(0xFFFFFFFF),
-                                            uncheckedBorderColor = Color.Transparent,
-                                            uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
-                                            uncheckedTrackColor = Color(0xFF8f8f8f)
-                                        ),
-                                        modifier = Modifier
-                                            .scale(0.7f)
-                                    )
+                                    IconButton(onClick = {
+                                        navController.popBackStack()
+                                    }) {
+                                        Icon(
+                                            painter = painterResource(id = R.drawable.back_icon),
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                                .size(16.dp),
+                                            tint = Color.White
+                                        )
+                                    }
                                     Text(
-                                        text = "Ubah",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        fontSize = 10.sp,
-                                        color = Color(0xFF00A7C0),
-                                        modifier = Modifier
-                                            .offset(y = -10.dp)
+                                        text = "Detail Atensi",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.White
                                     )
-                                }
+                                    if (vm.pref.getTipeSatker()!! == "3") {
+
+                                        Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Switch(
+                                            checked = isEdit.value,
+                                            onCheckedChange = { isEdit.value = it },
+                                            colors = SwitchDefaults.colors(
+                                                checkedBorderColor = Color.Transparent,
+                                                checkedThumbColor = Color(0xFF00A7C0),
+                                                checkedTrackColor = Color(0xFFFFFFFF),
+                                                uncheckedBorderColor = Color.Transparent,
+                                                uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
+                                                uncheckedTrackColor = Color(0xFF8f8f8f)
+                                            ),
+                                            modifier = Modifier
+                                                .scale(0.7f)
+                                        )
+                                        Text(
+                                            text = "Ubah",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontSize = 10.sp,
+                                            color = Color(0xFFFFFFFF),
+                                            modifier = Modifier
+                                                .offset(y = -10.dp)
+                                        )
+                                    }
+                                } else {
+                                        Text(
+                                            text = "Ubah",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            fontSize = 10.sp,
+                                            color = Color(0xFF00A7C0),
+                                            modifier = Modifier
+                                                .offset(y = -10.dp)
+                                        )
+                                    }
                             }
                         }
+
                     }
                     Box(
                         modifier = Modifier
@@ -461,6 +475,10 @@ Box {
 //                        }
                         item {
                             Column {
+                                AnimatedVisibility(visible = !lat.value.isNullOrEmpty() && !long.value.isNullOrEmpty() && long.value != "null" && lat.value != "null") {
+                                    MapsView(lat.value.toDouble(), long.value.toDouble())
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
                                 Surface(
                                     Modifier
                                         .fillMaxWidth()

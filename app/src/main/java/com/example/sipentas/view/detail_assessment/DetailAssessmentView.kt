@@ -76,6 +76,7 @@ import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.utils.LocationProviders
+import com.example.sipentas.utils.MapsView
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.UploadStreamRequestBody
 import com.example.sipentas.utils.getOutputDirectory
@@ -440,27 +441,42 @@ fun DetailAssessmentView(
                        style = MaterialTheme.typography.titleMedium,
                        color = Color.Black
                    )
-                   Column(
-                       horizontalAlignment = Alignment.CenterHorizontally
-                   ) {
-                       Switch(checked =isEdit.value ,
-                           onCheckedChange = {isEdit.value = it},
-                           colors = SwitchDefaults.colors(
-                               checkedBorderColor = Color.Transparent,
-                               checkedThumbColor = Color.White,
-                               checkedTrackColor = Color(0xFF00A7C0),
-                               uncheckedBorderColor = Color.Transparent,
-                               uncheckedThumbColor = Color.White.copy(0.6f),
-                               uncheckedTrackColor = Color(0xFF8f8f8f)
-                           ),
-                           modifier = Modifier
-                               .scale(0.7f))
-                       Text(text = "Ubah",
+                   if (asVm.pref.getTipeSatker()!! == "3") {
+                       Column(
+                           horizontalAlignment = Alignment.CenterHorizontally
+                       ) {
+                           Switch(
+                               checked = isEdit.value,
+                               onCheckedChange = { isEdit.value = it },
+                               colors = SwitchDefaults.colors(
+                                   checkedBorderColor = Color.Transparent,
+                                   checkedThumbColor = Color(0xFFFFFFFF),
+                                   checkedTrackColor = Color(0xFF00A7C0),
+                                   uncheckedBorderColor = Color.Transparent,
+                                   uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
+                                   uncheckedTrackColor = Color(0xFF8f8f8f)
+                               ),
+                               modifier = Modifier
+                                   .scale(0.7f)
+                           )
+                           Text(
+                               text = "Ubah",
+                               style = MaterialTheme.typography.bodyMedium,
+                               fontSize = 10.sp,
+                               color = Color(0xFF00A7C0),
+                               modifier = Modifier
+                                   .offset(y = -10.dp)
+                           )
+                       }
+                   } else {
+                       Text(
+                           text = "Ubah",
                            style = MaterialTheme.typography.bodyMedium,
                            fontSize = 10.sp,
-                           color = Color(0xFF00A7C0),
+                           color = Color(0xFFFFFFFF),
                            modifier = Modifier
-                               .offset(y= -10.dp))
+                               .offset(y = -10.dp)
+                       )
                    }
                }
            },
@@ -508,6 +524,10 @@ fun DetailAssessmentView(
                        .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                        .verticalScroll(scrollState)
                ) {
+                   AnimatedVisibility(visible = !lat.value.isNullOrEmpty() && !long.value.isNullOrEmpty() && long.value != "null" && lat.value != "null") {
+                       MapsView(lat.value.toDouble(), long.value.toDouble())
+                   }
+                   Spacer(modifier = Modifier.height(12.dp))
                    Row(
                        Modifier
                            .fillMaxWidth()
@@ -799,6 +819,25 @@ fun DetailAssessmentView(
                        },
                        url = urlPdf.value)
                    Spacer(modifier = Modifier.height(14.dp))
+                   if (asVm.pref.getTipeSatker()!! != "3") {
+                       Spacer(modifier = Modifier.height(10.dp))
+                       Divider( color = Color(0xFF8f8f8f))
+                       Spacer(modifier = Modifier.height(6.dp))
+                       if (!atensi.rows.isNullOrEmpty())
+                       atensi.rows.forEach {
+                               item ->
+
+                               ListAtensiAssesment(
+                                   navController,
+                                   item,
+                                   item.id_atensi,
+                                   item.id_pendekatan_atensi
+                               )
+
+
+                           Spacer(modifier = Modifier.height(14.dp))
+                       }
+                   }
                    AnimatedVisibility(visible = isEdit.value) {
                       Column {
                           ButtonPrimary(text = {

@@ -15,6 +15,7 @@ import com.example.sipentas.models.PekerjaanResponse
 import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.models.verifikasi_atensi.VerifikasiAtensiResponse
 import com.example.sipentas.repositories.AssesmentRepository
+import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +24,7 @@ import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @HiltViewModel
-class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepository) : ViewModel() {
+class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepository,val pref:SharePrefs) : ViewModel() {
     private val _uiState = MutableStateFlow(AssesmentResponse())
     val uiState = _uiState.asStateFlow()
 
@@ -194,10 +195,32 @@ class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepositor
             }
         }
 
+    fun getAssesmentAll() =
+        viewModelScope.launch {
+            try {
+                repo.getAllAssesment().let { item ->
+                    _uiState.value = item
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA", e.toString())
+            }
+        }
+
     fun searchAssesment(search:String) =
         viewModelScope.launch {
             try {
                 repo.searchAssesment(search).let { item ->
+                    _uiState.value = item
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA", e.toString())
+            }
+        }
+
+    fun searchAllAssesment(search:String) =
+        viewModelScope.launch {
+            try {
+                repo.searchAssesmentAll(search).let { item ->
                     _uiState.value = item
                 }
             } catch (e: Exception) {

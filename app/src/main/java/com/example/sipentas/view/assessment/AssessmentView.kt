@@ -66,12 +66,39 @@ fun AssessmentView(
     val search = remember {
         mutableStateOf("")
     }
+    val checkNotNull = remember {
+        mutableStateOf(false)
+    }
+    if (!loginVm.prefs.getTipeSatker().isNullOrEmpty()) {
+        checkNotNull.value = true
+        LaunchedEffect(key3 = search.value, key2 = checkNotNull.value, key1 = Unit, block = {
+            when (loginVm.prefs.getTipeSatker()) {
+                "3" -> {
+                    if (search.value.isEmpty()) {
+                        vm.getAssesmen()
+                    } else {
+                        vm.searchAssesment(search.value)
+                    }
+                }
+                "1" -> {
+                    if (search.value.isEmpty()) {
+                        vm.getAssesmentAll()
+                    } else {
+                        vm.searchAllAssesment(search.value)
+                    }
+                }
+                else -> {
+                    if (search.value.isEmpty()) {
+                        vm.getAssesmentAll()
+                    } else {
+                        vm.searchAllAssesment(search.value)
+                    }
+                }
+            }
+        })
+    }
     LaunchedEffect(key1 = search.value, block = {
-        if (search.value.isEmpty()) {
-            vm.getAssesmen()
-        } else {
-            vm.searchAssesment(search.value)
-        }
+
     } )
     val uiState = vm.uiState.collectAsState().value
 
@@ -147,11 +174,24 @@ fun AssessmentView(
                                             currentIndex.intValue = item.id_asesmen!!.toInt()
                                             confirmDelete.value = true }
                                     )
-                                    SwipeableActionsBox(
-                                        endActions = listOf(delete),
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                    ) {
+                                    if (loginVm.prefs.getTipeSatker() == "3") {
+                                        SwipeableActionsBox(
+                                            endActions = listOf(delete),
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                        ) {
+                                            ListAssesMain(
+                                                item,
+                                                navController,
+                                                item.id_pm,
+                                                item.id_pendidikan,
+                                                item.id_pekerjaan,
+                                                item.id_status_ortu,
+                                                changeColor,
+                                                changeIcon
+                                            )
+                                        }
+                                    } else {
                                         ListAssesMain(
                                             item,
                                             navController,
@@ -163,6 +203,7 @@ fun AssessmentView(
                                             changeIcon
                                         )
                                     }
+
                                     Spacer(modifier = Modifier.height(14.dp))
                                 }
                             })

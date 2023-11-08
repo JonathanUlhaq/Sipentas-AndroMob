@@ -47,6 +47,13 @@ class SharePrefs @Inject constructor(@ApplicationContext context: Context) {
         editor.apply()
     }
 
+    fun saveTipeSatker(satker:String) {
+        val editor = prefs.edit()
+        editor.putString("USER_TIPESATKER",satker)
+        editor.apply()
+    }
+    fun getTipeSatker():String? =  prefs.getString("USER_TIPESATKER",null)
+
     fun getSatker():String? =
         prefs.getString("USER_SATKER",null)
 

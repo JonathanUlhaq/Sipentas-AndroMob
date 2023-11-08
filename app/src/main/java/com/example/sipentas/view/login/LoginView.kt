@@ -33,6 +33,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,10 @@ fun LoginView(
     val loading = remember {
         mutableStateOf(false)
     }
+
+    val userState = loginViewModel.userState.collectAsState().value
+
+
 
     val animatedPassword
             by animateIntAsState(
@@ -216,9 +221,13 @@ fun LoginView(
                                 errorMessage.value = when(it.toString()) {
                                     "retrofit2.HttpException: HTTP 401 Unauthorized" -> "Kamu sedang login, logout terlebih dahulu"
                                     "retrofit2.HttpException: HTTP 400 Bad Request" -> "NIK / Password salah"
-                                    else -> "NIK / Password tidak boleh kosong"
+                                    else -> "Koneksi Time Out"
                                 }
                             }) {
+                                loginViewModel.getUser()
+                                if (!userState.isEmpty()) {
+                                    loginViewModel.prefs.saveTipeSatker(userState[0].tipe_user!!)
+                                }
                                 loading.value = false
                                 navController.navigate(BotNavRoute.PenerimaManfaat.route)
                             }

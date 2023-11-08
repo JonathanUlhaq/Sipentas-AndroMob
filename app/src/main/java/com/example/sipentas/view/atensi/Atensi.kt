@@ -68,6 +68,38 @@ fun Atensi(
     val search = remember {
         mutableStateOf("")
     }
+    val checkNotNull = remember {
+        mutableStateOf(false)
+    }
+    if (!loginVm.prefs.getTipeSatker().isNullOrEmpty()) {
+        checkNotNull.value = true
+        LaunchedEffect(key3 = search.value, key2 = checkNotNull.value, key1 = Unit, block = {
+            when (loginVm.prefs.getTipeSatker()) {
+                "3" -> {
+                    if (search.value.isEmpty()) {
+                        detailVm.getAtensi()
+                    } else {
+                        detailVm.searchAtensi(search.value)
+                    }
+                }
+                "1" -> {
+                    if (search.value.isEmpty()) {
+                        detailVm.getAtensiAll()
+                    } else {
+                        detailVm.searchAtensiAll(search.value)
+                    }
+                }
+                else -> {
+                    if (search.value.isEmpty()) {
+                        detailVm.getAtensi()
+                    } else {
+                        detailVm.searchAtensi(search.value)
+                    }
+                }
+            }
+        })
+    }
+
     LaunchedEffect(key1 = search.value, block = {
         if (search.value.isEmpty()) {
             detailVm.getAtensi()
@@ -125,11 +157,20 @@ fun Atensi(
                                             confirmDelete.value = true
                                         }
                                     )
-                                    SwipeableActionsBox(
-                                        endActions = listOf(delete),
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                    ) {
+                                    if (loginVm.prefs.getTipeSatker() == "3") {
+                                        SwipeableActionsBox(
+                                            endActions = listOf(delete),
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                        ) {
+                                            ListAtensi(
+                                                navController,
+                                                item,
+                                                item.id_atensi,
+                                                item.id_pendekatan_atensi
+                                            )
+                                        }
+                                    } else {
                                         ListAtensi(
                                             navController,
                                             item,
@@ -137,7 +178,6 @@ fun Atensi(
                                             item.id_pendekatan_atensi
                                         )
                                     }
-
                                     Spacer(modifier = Modifier.height(14.dp))
                                 }
                             })

@@ -17,6 +17,8 @@ import javax.inject.Inject
 
 class AssesmentRepository @Inject constructor(private val api:SipentasAPI) {
     suspend fun getAssesment():AssesmentResponse = api.getAssesment()
+    suspend fun getAllAssesment():AssesmentResponse = api.getAllAssesment()
+    suspend fun searchAssesmentAll(search:String):AssesmentResponse = api.getSearchAssesmentAll(search)
     suspend fun searchAssesment(search:String):AssesmentResponse = api.searchAssesment(search)
     suspend fun getPendidikan():List<KategoriPendidikanResponse> = api.getPendidikan()
     suspend fun getKasus():List<KategoriSumberResponse> = api.getSumber()

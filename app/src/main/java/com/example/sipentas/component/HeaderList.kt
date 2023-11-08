@@ -27,14 +27,15 @@ fun HeaderList(
     search: MutableState<String>,
     label: String,
     vm: LoginViewModel,
-    list:List<*>?
+    list: List<*>?
 ) {
 
     vm.getUser()
     val userState = vm.userState.collectAsState().value
-      if (!userState.isEmpty()) {
+    if (!userState.isEmpty()) {
         vm.prefs.saveName(userState[0].username!!)
         vm.prefs.saveSatker(userState[0].sentra!!)
+        vm.prefs.saveTipeSatker(userState[0].tipe_user!!)
     }
 
 
@@ -55,17 +56,17 @@ fun HeaderList(
                         color = Color.White
                     )
                     Spacer(modifier = Modifier.height(4.dp))
-                   if (!list.isNullOrEmpty()) {
-                       Text(
-                           text = "${list.count()}",
-                           style = MaterialTheme.typography.bodyMedium,
-                           color = Color.White
-                       )
-                   }
+                    if (!list.isNullOrEmpty()) {
+                        Text(
+                            text = "${list.count()}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White
+                        )
+                    }
                 }
 
                 if (!userState.isEmpty()) {
-                    Column (
+                    Column(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(

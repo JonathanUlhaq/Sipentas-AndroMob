@@ -75,6 +75,7 @@ import com.example.sipentas.utils.DropDownDummy
 import com.example.sipentas.utils.DropdownCompose
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.utils.LocationProviders
+import com.example.sipentas.utils.MapsView
 import com.example.sipentas.utils.RequestCameraPermission
 import com.example.sipentas.utils.getOutputDirectory
 import com.example.sipentas.view.assessment.AssesmenViewModel
@@ -129,6 +130,7 @@ fun DetailView(
     vm.getAssesmentPm(id_pm.toInt())
     val assesmentState = vm.assesmentState.collectAsState().value
     val context = LocalContext.current
+    val userType = vm.pref.getTipeSatker()
 
     val loading = remember {
         mutableStateOf(false)
@@ -339,32 +341,44 @@ fun DetailView(
                         style = MaterialTheme.typography.titleMedium,
                         color = Color.Black
                     )
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Switch(
-                            checked = isEdit.value,
-                            onCheckedChange = { isEdit.value = it },
-                            colors = SwitchDefaults.colors(
-                                checkedBorderColor = Color.Transparent,
-                                checkedThumbColor = Color(0xFFFFFFFF),
-                                checkedTrackColor = Color(0xFF00A7C0),
-                                uncheckedBorderColor = Color.Transparent,
-                                uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
-                                uncheckedTrackColor = Color(0xFF8f8f8f)
-                            ),
-                            modifier = Modifier
-                                .scale(0.7f)
-                        )
+                    if (userType!! == "3") {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Switch(
+                                checked = isEdit.value,
+                                onCheckedChange = { isEdit.value = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedBorderColor = Color.Transparent,
+                                    checkedThumbColor = Color(0xFFFFFFFF),
+                                    checkedTrackColor = Color(0xFF00A7C0),
+                                    uncheckedBorderColor = Color.Transparent,
+                                    uncheckedThumbColor = Color(0xFFFFFFFF).copy(0.6f),
+                                    uncheckedTrackColor = Color(0xFF8f8f8f)
+                                ),
+                                modifier = Modifier
+                                    .scale(0.7f)
+                            )
+                            Text(
+                                text = "Ubah",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 10.sp,
+                                color = Color(0xFF00A7C0),
+                                modifier = Modifier
+                                    .offset(y = -10.dp)
+                            )
+                        }
+                    } else {
                         Text(
                             text = "Ubah",
                             style = MaterialTheme.typography.bodyMedium,
                             fontSize = 10.sp,
-                            color = Color(0xFF00A7C0),
+                            color = Color(0xFFFFFFFF),
                             modifier = Modifier
                                 .offset(y = -10.dp)
                         )
                     }
+
                 }
             }
         ) {
@@ -379,6 +393,10 @@ fun DetailView(
                         .padding(top = 18.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
                         .verticalScroll(scrollState)
                 ) {
+                    AnimatedVisibility(visible = !lat.value.isNullOrEmpty() && !long.value.isNullOrEmpty() && long.value != "null" && lat.value != "null") {
+                        MapsView(lat.value.toDouble(), long.value.toDouble())
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
                     Surface(
                         Modifier
                             .fillMaxWidth()
@@ -533,7 +551,7 @@ fun DetailView(
                             .fillMaxWidth(),
                         enabled = isEdit.value
                     )
-                    AnimatedVisibility(visible = nik.value.length != 16) {
+                    AnimatedVisibility(visible = nik.value.length != 16 && nik.value.isNotEmpty()) {
                         Column {
                             Spacer(modifier = Modifier.height(6.dp))
                             Text(
@@ -706,6 +724,43 @@ fun DetailView(
                         singleLine = false,
                         enabled = isEdit.value
                     )
+                    if (userType!! != "3") {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Divider( color = Color(0xFF8f8f8f))
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        if ( !assesmentState.data.isNullOrEmpty()) {
+                            assesmentState.data.forEach { item ->
+                                val changeColor by animateColorAsState(
+                                    targetValue = if (item.flag == 0) Color(
+                                        0xFFD0D34B
+                                    )
+                                    else if (item.flag == 1) Color(0xFF4BD379)
+                                    else Color(0xFFD34B4B)
+                                )
+                                val changeIcon by animateIntAsState(
+                                    targetValue = if (item.flag == 0)
+                                        R.drawable.process_icon else if (item.flag == 1)
+                                        R.drawable.check_icon
+                                    else R.drawable.close_icon
+                                )
+                                    AssesList(
+                                        navController,
+                                        item,
+                                        item.id_pm,
+                                        item.id_pendidikan,
+                                        item.id_pekerjaan,
+                                        item.id_status_ortu,
+                                        changeColor,
+                                        changeIcon
+                                    )
+
+
+                                Spacer(modifier = Modifier.height(14.dp))
+                            }
+                        }
+
+                }
                     AnimatedVisibility(visible = isEdit.value) {
                         Column {
                             Spacer(modifier = Modifier.height(20.dp))

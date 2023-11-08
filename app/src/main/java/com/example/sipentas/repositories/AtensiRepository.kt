@@ -14,6 +14,8 @@ class AtensiRepository @Inject constructor(private val api:SipentasAPI) {
     suspend fun getJenisAtensi():List<JenisAtensiResponse> = api.getJenisAtensi()
     suspend fun getPendekatanAtensi():List<PendekatanAtensiResponse> = api.getPendekatanAtensi()
     suspend fun getAtensi(): AtensiResponse = api.getAtensi()
+    suspend fun getAtensiAll(): AtensiResponse = api.getAtensiAll()
+    suspend fun searchAtensiAll(search:String):AtensiResponse = api.searchAtensiAll(search)
     suspend fun searchAtensi(search:String):AtensiResponse = api.searchAtensi(search)
     suspend fun addAtensi(body:AtensiBody) = api.addAtensi(body)
     suspend fun insertPhoto(file:MultipartBody.Part) = api.uploadPhoto(file)

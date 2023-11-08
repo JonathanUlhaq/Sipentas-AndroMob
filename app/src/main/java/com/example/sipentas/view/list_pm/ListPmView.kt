@@ -65,7 +65,7 @@ import me.saket.swipe.SwipeableActionsBox
 fun ListPmView(
     vm: ListPmViewModel,
     navController: NavController,
-    loginVm:LoginViewModel
+    loginVm: LoginViewModel
 ) {
 
     val uiState = vm.uiState.collectAsState().value
@@ -73,9 +73,21 @@ fun ListPmView(
     val search = remember {
         mutableStateOf("")
     }
-   val getData = LaunchedEffect(key1 = search.value, block = {
-        vm.getPmData(search.value)
-    })
+    val checkNotNull = remember {
+        mutableStateOf(false)
+    }
+    Log.d("TES USER ID", vm.prefs.getTipeSatker()!!)
+
+    if (!vm.prefs.getTipeSatker().isNullOrEmpty()) {
+        checkNotNull.value = true
+        LaunchedEffect(key3 = search.value, key2 = checkNotNull.value, key1 = Unit, block = {
+            when (vm.prefs.getTipeSatker()) {
+                "3" -> vm.getPmData(search.value)
+                "1" -> vm.getPm(search.value)
+                else -> vm.getPmData(search.value)
+            }
+        })
+    }
     val confirmDelete = remember {
         mutableStateOf(false)
     }
@@ -95,12 +107,16 @@ fun ListPmView(
         desc = " Apakah anda yakin menghapus data ini ?",
         boolean = confirmDelete
     ) {
-        Log.d("GET IDNYA",currentIndex.value.toString())
-        vm.deletePm(currentIndex.value,loading, {
-            Toast.makeText(context,"Tidak bisa dihapus, masih ada asesmen yang menggunakan id pm ini",Toast.LENGTH_SHORT).show()
+        Log.d("GET IDNYA", currentIndex.value.toString())
+        vm.deletePm(currentIndex.value, loading, {
+            Toast.makeText(
+                context,
+                "Tidak bisa dihapus, masih ada asesmen yang menggunakan id pm ini",
+                Toast.LENGTH_SHORT
+            ).show()
             confirmDelete.value = false
         }) {
-            Toast.makeText(context,"Data Berhasil dihapus",Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Data Berhasil dihapus", Toast.LENGTH_SHORT).show()
             navController.navigate(BotNavRoute.PenerimaManfaat.route) {
                 popUpTo(0)
             }
@@ -110,21 +126,24 @@ fun ListPmView(
 
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    navController.navigate(AppRoute.Form.route)
-                },
-                containerColor = Color(0xFF00A7C0),
-                shape = CircleShape,
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.add_icon),
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .size(14.dp)
-                )
+            if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
+                FloatingActionButton(
+                    onClick = {
+                        navController.navigate(AppRoute.Form.route)
+                    },
+                    containerColor = Color(0xFF00A7C0),
+                    shape = CircleShape,
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.add_icon),
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier
+                            .size(14.dp)
+                    )
+                }
             }
+
         }
     ) {
         Surface(
@@ -134,7 +153,7 @@ fun ListPmView(
             color = Color(0xFF00A7C0)
         ) {
             Column {
-                HeaderList(search, "Penerima Manfaat",loginVm,uiState)
+                HeaderList(search, "Penerima Manfaat", loginVm, uiState)
                 Spacer(modifier = Modifier.height(20.dp))
                 ListBody {
                     if (uiState.isNotEmpty()) {
@@ -148,17 +167,25 @@ fun ListPmView(
                                         background = Color(0xFFEF3131),
                                         onSwipe = {
                                             currentIndex.intValue = item.id!!.toInt()
-                                            confirmDelete.value = true }
+                                            confirmDelete.value = true
+                                        }
                                     )
-                                    SwipeableActionsBox(
-                                        endActions = listOf(delete),
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(6.dp))
-                                    ) {
+                                    if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
+                                        SwipeableActionsBox(
+                                            endActions = listOf(delete),
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(6.dp))
+                                        ) {
+                                            ListPmItem(navController, item) {
+
+                                            }
+                                        }
+                                    } else {
                                         ListPmItem(navController, item) {
 
                                         }
                                     }
+
                                     Spacer(modifier = Modifier.height(14.dp))
 
                                 }
@@ -174,7 +201,7 @@ fun ListPmView(
 private fun ListPmItem(
     navController: NavController,
     item: PmModel,
-    onId:@Composable (Int) -> Unit
+    onId: @Composable (Int) -> Unit
 ) {
     onId.invoke(item.id!!.toInt())
     Surface(
@@ -227,18 +254,20 @@ private fun ListPmItem(
                 modifier = Modifier
                     .size(width = 80.dp, height = 44.dp)
             ) {
-               if (item.foto_diri.isNullOrEmpty() || item.foto_diri == "0" || item.foto_diri == "url") {
-                   Image(
-                       painter = painterResource(id = R.drawable.default_photo),
-                       contentDescription = null,
-                       modifier = Modifier,
-                       contentScale = ContentScale.Crop
-                   )
-               } else {
-                   AsyncImage(model = item.foto_diri,
-                       contentDescription = null,
-                    contentScale = ContentScale.Crop)
-               }
+                if (item.foto_diri.isNullOrEmpty() || item.foto_diri == "0" || item.foto_diri == "url") {
+                    Image(
+                        painter = painterResource(id = R.drawable.default_photo),
+                        contentDescription = null,
+                        modifier = Modifier,
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    AsyncImage(
+                        model = item.foto_diri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
             }
             Spacer(modifier = Modifier.width(12.dp))

@@ -11,6 +11,7 @@ import com.example.sipentas.di.RagamModel
 import com.example.sipentas.models.LoginModel
 import com.example.sipentas.models.PmModel
 import com.example.sipentas.repositories.PmRepository
+import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,7 +20,7 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @HiltViewModel
-class ListPmViewModel @Inject constructor(val repo: PmRepository) : ViewModel() {
+class ListPmViewModel @Inject constructor(val repo: PmRepository,val prefs: SharePrefs) : ViewModel() {
 
     private val _uiState = MutableStateFlow<List<PmModel>>(emptyList())
     val uiState = _uiState.asStateFlow()
@@ -53,6 +54,23 @@ class ListPmViewModel @Inject constructor(val repo: PmRepository) : ViewModel() 
                     }
                 } else {
                     repo.searchPm(search).let { item ->
+                        _uiState.value = item
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA", e.toString())
+            }
+        }
+
+    fun getPm(search: String) =
+        viewModelScope.launch {
+            try {
+                if (search.isEmpty()) {
+                    repo.getPm().let { item ->
+                        _uiState.value = item
+                    }
+                } else {
+                    repo.getSearchAllPm(search).let { item ->
                         _uiState.value = item
                     }
                 }

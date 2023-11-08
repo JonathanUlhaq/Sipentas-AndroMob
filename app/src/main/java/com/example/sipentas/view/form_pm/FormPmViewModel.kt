@@ -19,6 +19,7 @@ import com.example.sipentas.models.PostPmModel
 import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.models.verifikasi_assesment.VerifikasiAssesmentResponse
 import com.example.sipentas.repositories.PmFormRepository
+import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,7 +29,7 @@ import javax.inject.Inject
 import kotlin.Exception
 
 @HiltViewModel
-class FormPmViewModel @Inject constructor(val repo: PmFormRepository) : ViewModel() {
+class FormPmViewModel @Inject constructor(val repo: PmFormRepository,val pref:SharePrefs) : ViewModel() {
 
     private val _provinsiState = MutableStateFlow<List<ProvinsiModel>>(emptyList())
     val provinsi = _provinsiState.asStateFlow()

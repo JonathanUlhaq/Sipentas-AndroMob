@@ -86,11 +86,21 @@ interface SipentasAPI {
     @GET("pm-by-sentra")
     suspend fun getAllPm():List<PmModel>
 
+    @GET("pm")
+    suspend fun getPm():List<PmModel>
+    @GET("pm")
+    suspend fun getAllSearchPm(@Query("search")search:String):List<PmModel>
+
     @GET("pm-by-sentra")
     suspend fun searchPm(@Query("search")search:String):List<PmModel>
 
     @GET("assessment-by-sentra")
     suspend fun getAssesment():AssesmentResponse
+
+    @GET("assessments")
+    suspend fun getAllAssesment():AssesmentResponse
+    @GET("assessments")
+    suspend fun getSearchAssesmentAll(@Query("search")search:String):AssesmentResponse
 
     @GET("assessment-by-sentra")
     suspend fun searchAssesment(@Query("search")search:String):AssesmentResponse
@@ -157,6 +167,10 @@ interface SipentasAPI {
     @GET("atensi-by-sentra")
     suspend fun getAtensi():AtensiResponse
 
+    @GET("atensi")
+    suspend fun getAtensiAll():AtensiResponse
+    @GET("atensi")
+    suspend fun searchAtensiAll(@Query("search")search:String):AtensiResponse
     @GET("atensi-by-sentra")
     suspend fun searchAtensi(@Query("search")search:String):AtensiResponse
 

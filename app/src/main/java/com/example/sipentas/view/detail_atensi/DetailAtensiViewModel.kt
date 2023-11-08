@@ -12,6 +12,7 @@ import com.example.sipentas.models.PendekatanAtensiResponse
 import com.example.sipentas.models.upload_file.UploadResponse
 import com.example.sipentas.models.verifikasi_atensi.VerifikasiAtensiResponse
 import com.example.sipentas.repositories.AtensiRepository
+import com.example.sipentas.utils.SharePrefs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,7 +21,7 @@ import okhttp3.MultipartBody
 import javax.inject.Inject
 
 @HiltViewModel
-class DetailAtensiViewModel @Inject constructor(private val repo: AtensiRepository) : ViewModel() {
+class DetailAtensiViewModel @Inject constructor(private val repo: AtensiRepository,val pref:SharePrefs) : ViewModel() {
     private val _jenisAtens = MutableStateFlow<List<JenisAtensiResponse>>(emptyList())
     val jenisAtensi = _jenisAtens.asStateFlow()
 
@@ -149,6 +150,26 @@ class DetailAtensiViewModel @Inject constructor(private val repo: AtensiReposito
             }
         }
 
+    fun getAtensiAll() =
+        viewModelScope.launch {
+            try {
+                repo.getAtensiAll().let {
+                    _uiState.value = it
+                }
+            } catch (e: Exception) {
+                Log.e("ERROR GET", e.toString())
+            }
+        }
+    fun searchAtensiAll(search:String) =
+        viewModelScope.launch {
+            try {
+                repo.searchAtensiAll(search).let {
+                    _uiState.value = it
+                }
+            } catch (e: Exception) {
+                Log.e("ERROR GET", e.toString())
+            }
+        }
     fun searchAtensi(search:String) =
         viewModelScope.launch {
             try {

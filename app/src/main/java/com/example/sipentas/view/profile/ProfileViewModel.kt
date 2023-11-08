@@ -19,6 +19,7 @@ class ProfileViewModel @Inject constructor(private val repo:ProfileRepository,va
                     prefs.saveToken("")
                     prefs.saveSatker("")
                     prefs.saveName("")
+                    prefs.saveTipeSatker("")
                     Log.e("LOGOUT BEHASIL:","YE")
                     onSuccess.invoke()
                 }

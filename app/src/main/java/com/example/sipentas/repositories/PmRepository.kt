@@ -11,6 +11,8 @@ import javax.inject.Inject
 
 class PmRepository @Inject constructor(private val api: SipentasAPI) {
     suspend fun getAllPm():List<PmModel> = api.getAllPm()
+    suspend fun getPm():List<PmModel> = api.getPm()
+    suspend fun getSearchAllPm(search:String):List<PmModel> = api.getAllSearchPm(search)
     suspend fun searchPm(search:String):List<PmModel> = api.searchPm(search)
     suspend fun deletePm(id:Int) = api.deletePm(id)
 
