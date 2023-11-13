@@ -966,7 +966,7 @@ private fun AssesList(
                                 + "/${if (!item.nik_ibu.isNullOrEmpty()) item.nik_ibu else "0"}"
                                 + "/${if (!item.nama_wali.isNullOrEmpty()) item.nama_wali else "0"}"
                                 + "/${if (!item.penghasilan.isNullOrEmpty()) item.penghasilan else "0"}"
-                                + "/${if (!item.catatan.isNullOrEmpty()) item.catatan else "0"}"
+                                + "/${if (!item.catatan.isNullOrEmpty()) item.catatan.replace("/"," ") else "0"}"
                                 + "?urlRumah=${if (!item.foto_rumah.isNullOrEmpty()) item.foto_rumah else "0"}"
                                 + "?urlFisik=${if (!item.foto_kondisi_fisik.isNullOrEmpty()) item.foto_kondisi_fisik else "0"}"
                                 + "?urlKk=${if (!item.foto_kk.isNullOrEmpty()) item.foto_kk else "0"}"

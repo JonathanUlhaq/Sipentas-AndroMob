@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.sipentas.utils.SharePrefs
 import com.example.sipentas.view.login.LoginViewModel
 import javax.inject.Inject
@@ -33,7 +34,7 @@ fun HeaderList(
     vm.getUser()
     val userState = vm.userState.collectAsState().value
     if (!userState.isEmpty()) {
-        vm.prefs.saveName(userState[0].username!!)
+        vm.prefs.saveName(userState[0].name!!)
         vm.prefs.saveSatker(userState[0].sentra!!)
         vm.prefs.saveTipeSatker(userState[0].tipe_user!!)
     }
@@ -70,15 +71,17 @@ fun HeaderList(
                         horizontalAlignment = Alignment.End
                     ) {
                         Text(
-                            text = "${userState[0].username}",
+                            text = "${userState[0].name}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White
+                            color = Color.White,
+                            fontSize = 10.sp
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = "${userState[0].sentra}",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = Color.White
+                            color = Color.White,
+                            fontSize = 10.sp
                         )
                     }
                 }

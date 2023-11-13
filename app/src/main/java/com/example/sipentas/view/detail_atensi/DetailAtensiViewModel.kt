@@ -139,45 +139,57 @@ class DetailAtensiViewModel @Inject constructor(private val repo: AtensiReposito
             }
         }
 
-    fun getAtensi() =
+    fun getAtensi(loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.getAtensi().let {
                     _uiState.value = it
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("ERROR GET", e.toString())
+                loading.value = false
             }
         }
 
-    fun getAtensiAll() =
+    fun getAtensiAll(loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.getAtensiAll().let {
                     _uiState.value = it
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("ERROR GET", e.toString())
+                loading.value = false
             }
         }
-    fun searchAtensiAll(search:String) =
+    fun searchAtensiAll(search:String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.searchAtensiAll(search).let {
                     _uiState.value = it
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("ERROR GET", e.toString())
+                loading.value = false
             }
         }
-    fun searchAtensi(search:String) =
+    fun searchAtensi(search:String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.searchAtensi(search).let {
                     _uiState.value = it
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("ERROR GET", e.toString())
+                loading.value = false
             }
         }
 

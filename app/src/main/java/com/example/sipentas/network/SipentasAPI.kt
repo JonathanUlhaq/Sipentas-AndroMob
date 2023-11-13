@@ -85,6 +85,10 @@ interface SipentasAPI {
 
     @GET("pm-by-sentra")
     suspend fun getAllPm():List<PmModel>
+    @GET("pm-by-direktorat")
+    suspend fun getPmByDirektorat():List<PmModel>
+    @GET("pm-by-direktorat")
+    suspend fun getPmByDirektoratSearch(@Query("search")search:String):List<PmModel>
 
     @GET("pm")
     suspend fun getPm():List<PmModel>
@@ -96,6 +100,8 @@ interface SipentasAPI {
 
     @GET("assessment-by-sentra")
     suspend fun getAssesment():AssesmentResponse
+    @GET("assessment-by-direktorat")
+    suspend fun getAssesmentDirektorat():AssesmentResponse
 
     @GET("assessments")
     suspend fun getAllAssesment():AssesmentResponse

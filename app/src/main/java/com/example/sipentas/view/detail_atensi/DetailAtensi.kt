@@ -193,11 +193,13 @@ fun DetailAtens(
     }
 
     val lat = remember {
-        mutableStateOf(latCur)
+        mutableStateOf("")
     }
+    lat.value = latCur
     val long = remember {
-        mutableStateOf(longCur)
+        mutableStateOf("")
     }
+    long.value = longCur
     val locationPermission = remember {
         mutableStateOf(false)
     }
@@ -297,7 +299,6 @@ Box {
                                         color = Color.White
                                     )
                                     if (vm.pref.getTipeSatker()!! == "3") {
-
                                         Column(
                                         horizontalAlignment = Alignment.CenterHorizontally
                                     ) {

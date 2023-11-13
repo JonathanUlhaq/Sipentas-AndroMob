@@ -47,12 +47,15 @@ import androidx.navigation.NavController
 import com.example.sipentas.R
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
+import com.example.sipentas.component.ShimerItem
 import com.example.sipentas.models.AssesmentRow
 import com.example.sipentas.navigation.AppRoute
 import com.example.sipentas.navigation.BotNavRoute
 import com.example.sipentas.utils.ComposeDialog
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.view.login.LoginViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -69,37 +72,37 @@ fun AssessmentView(
     val checkNotNull = remember {
         mutableStateOf(false)
     }
+    val loadingData = remember {
+        mutableStateOf(false)
+    }
     if (!loginVm.prefs.getTipeSatker().isNullOrEmpty()) {
         checkNotNull.value = true
-        LaunchedEffect(key3 = search.value, key2 = checkNotNull.value, key1 = Unit, block = {
+        LaunchedEffect(key3 = search.value, key2 = loginVm.prefs.getTipeSatker(), key1 = Unit, block = {
             when (loginVm.prefs.getTipeSatker()) {
                 "3" -> {
                     if (search.value.isEmpty()) {
-                        vm.getAssesmen()
+                        vm.getAssesmen(loadingData)
                     } else {
-                        vm.searchAssesment(search.value)
+                        vm.searchAssesment(search.value,loadingData)
                     }
                 }
                 "1" -> {
                     if (search.value.isEmpty()) {
-                        vm.getAssesmentAll()
+                        vm.getAssesmentAll(loadingData)
                     } else {
-                        vm.searchAllAssesment(search.value)
+                        vm.searchAllAssesment(search.value,loadingData)
                     }
                 }
                 else -> {
                     if (search.value.isEmpty()) {
-                        vm.getAssesmentAll()
+                        vm.getAssesmentAll(loadingData)
                     } else {
-                        vm.searchAllAssesment(search.value)
+                        vm.searchAllAssesment(search.value,loadingData)
                     }
                 }
             }
         })
     }
-    LaunchedEffect(key1 = search.value, block = {
-
-    } )
     val uiState = vm.uiState.collectAsState().value
 
     val context = LocalContext.current
@@ -116,7 +119,9 @@ fun AssessmentView(
     val currentIndex = remember {
         mutableIntStateOf(0)
     }
-
+    val refresh = remember {
+        mutableStateOf(false)
+    }
     ComposeDialog(
         title = "Hapus Data",
         desc = " Apakah anda yakin menghapus data ini ?",
@@ -135,51 +140,67 @@ fun AssessmentView(
             confirmDelete.value = false
         }
     }
+    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing = refresh.value), onRefresh = {
+        navController.navigate(BotNavRoute.Assessment.route) {
+            popUpTo(0)
+        }
+    }) {
+        Scaffold {
+            Surface(
+                Modifier
+                    .padding(it)
+                    .fillMaxSize(),
+                color = Color(0xFF00A7C0)
+            ) {
+                Column {
+                    HeaderList(search, "Assessment",loginVm,uiState.rows)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    ListBody {
+                        if (!uiState.rows.isNullOrEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                content = {
+                                    itemsIndexed(uiState.rows) { index, item ->
 
-    Scaffold {
-        Surface(
-            Modifier
-                .padding(it)
-                .fillMaxSize(),
-            color = Color(0xFF00A7C0)
-        ) {
-            Column {
-                HeaderList(search, "Assessment",loginVm,uiState.rows)
-                Spacer(modifier = Modifier.height(20.dp))
-                ListBody {
-                    if (uiState.rows != null) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .padding(16.dp),
-                            content = {
-                                itemsIndexed(uiState.rows) { index, item ->
-
-                                    val changeColor by animateColorAsState(
-                                        targetValue = if (item.flag == 0) Color(
-                                            0xFFD0D34B
+                                        val changeColor by animateColorAsState(
+                                            targetValue = if (item.flag == 0) Color(
+                                                0xFFD0D34B
+                                            )
+                                            else if (item.flag == 1) Color(0xFF4BD379)
+                                            else Color(0xFFD34B4B)
                                         )
-                                        else if (item.flag == 1) Color(0xFF4BD379)
-                                        else Color(0xFFD34B4B)
-                                    )
-                                    val changeIcon by animateIntAsState(
-                                        targetValue = if (item.flag == 0)
-                                            R.drawable.process_icon else if (item.flag == 1)
-                                            R.drawable.check_icon
-                                        else R.drawable.close_icon
-                                    )
-                                    val delete = SwipeAction(
-                                        icon = painterResource(id = R.drawable.icon_delete),
-                                        background = Color(0xFFEF3131),
-                                        onSwipe = {
-                                            currentIndex.intValue = item.id_asesmen!!.toInt()
-                                            confirmDelete.value = true }
-                                    )
-                                    if (loginVm.prefs.getTipeSatker() == "3") {
-                                        SwipeableActionsBox(
-                                            endActions = listOf(delete),
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(6.dp))
-                                        ) {
+                                        val changeIcon by animateIntAsState(
+                                            targetValue = if (item.flag == 0)
+                                                R.drawable.process_icon else if (item.flag == 1)
+                                                R.drawable.check_icon
+                                            else R.drawable.close_icon
+                                        )
+                                        val delete = SwipeAction(
+                                            icon = painterResource(id = R.drawable.icon_delete),
+                                            background = Color(0xFFEF3131),
+                                            onSwipe = {
+                                                currentIndex.intValue = item.id_asesmen!!.toInt()
+                                                confirmDelete.value = true }
+                                        )
+                                        if (loginVm.prefs.getTipeSatker() == "3") {
+                                            SwipeableActionsBox(
+                                                endActions = listOf(delete),
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                            ) {
+                                                ListAssesMain(
+                                                    item,
+                                                    navController,
+                                                    item.id_pm,
+                                                    item.id_pendidikan,
+                                                    item.id_pekerjaan,
+                                                    item.id_status_ortu,
+                                                    changeColor,
+                                                    changeIcon
+                                                )
+                                            }
+                                        } else {
                                             ListAssesMain(
                                                 item,
                                                 navController,
@@ -191,27 +212,39 @@ fun AssessmentView(
                                                 changeIcon
                                             )
                                         }
-                                    } else {
-                                        ListAssesMain(
-                                            item,
-                                            navController,
-                                            item.id_pm,
-                                            item.id_pendidikan,
-                                            item.id_pekerjaan,
-                                            item.id_status_ortu,
-                                            changeColor,
-                                            changeIcon
-                                        )
-                                    }
 
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                }
-                            })
+                                        Spacer(modifier = Modifier.height(14.dp))
+                                    }
+                                })
+                        }else if (uiState.rows.isNullOrEmpty() && loadingData.value) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                content = {
+                                    items(20) {
+                                        ShimerItem()
+                                        Spacer(modifier = Modifier.height(14.dp))
+
+                                    }
+                                })
+                        } else {
+                            Box(modifier = Modifier
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)) {
+                                Text(text = "Data Kosong",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color(0xFF8D8D8D),
+                                    fontSize = 16.sp
+                                )
+                            }
+
+                        }
                     }
                 }
             }
         }
     }
+
 }
 
 @Composable
@@ -260,7 +293,7 @@ private fun ListAssesMain(
                                     + "/${if (!item.nik_ibu.isNullOrEmpty()) item.nik_ibu else "0"}"
                                     + "/${if (!item.nama_wali.isNullOrEmpty()) item.nama_wali else "0"}"
                                     + "/${if (!item.penghasilan.isNullOrEmpty()) item.penghasilan else "0"}"
-                                    + "/${if (!item.catatan.isNullOrEmpty()) item.catatan else "0"}"
+                                    + "/${if (!item.catatan.isNullOrEmpty()) item.catatan.replace("/"," ") else "0"}"
                                     + "?urlRumah=${if (!item.foto_rumah.isNullOrEmpty()) item.foto_rumah else "0"}"
                                     + "?urlFisik=${if (!item.foto_kondisi_fisik.isNullOrEmpty()) item.foto_kondisi_fisik else "0"}"
                                     + "?urlKk=${if (!item.foto_kk.isNullOrEmpty()) item.foto_kk else "0"}"
@@ -293,7 +326,7 @@ private fun ListAssesMain(
                         0 -> "Belum Diproses"
                         1 -> "Sudah Diproses"
                         else -> "Closed"
-                    },
+                    }+" | ${item.nama_sumber_kasus}",
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 10.sp,
                     color = Color(0xFFC3C3C3)

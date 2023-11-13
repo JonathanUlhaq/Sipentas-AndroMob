@@ -296,11 +296,13 @@ fun DetailAssessmentView(
         mutableStateOf(idPm)
     }
     val lat = remember {
-        mutableStateOf(latCur)
+        mutableStateOf("")
     }
+    lat.value = latCur
     val long = remember {
-        mutableStateOf(longCur)
+        mutableStateOf("")
     }
+    long.value = longCur
     val dropDownCompose = DropdownCompose(vm, asVm)
     val pendidikanInt = remember {
         mutableIntStateOf(curPendidikanId.toInt())

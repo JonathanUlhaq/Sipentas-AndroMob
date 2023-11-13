@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -50,6 +51,7 @@ import com.example.sipentas.R
 import com.example.sipentas.component.FilledTextField
 import com.example.sipentas.component.HeaderList
 import com.example.sipentas.component.ListBody
+import com.example.sipentas.component.ShimerItem
 import com.example.sipentas.models.LoginModel
 import com.example.sipentas.models.PmModel
 import com.example.sipentas.navigation.AppRoute
@@ -57,6 +59,8 @@ import com.example.sipentas.navigation.BotNavRoute
 import com.example.sipentas.utils.ComposeDialog
 import com.example.sipentas.utils.LoadingDialog
 import com.example.sipentas.view.login.LoginViewModel
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import me.saket.swipe.SwipeAction
 import me.saket.swipe.SwipeableActionsBox
 
@@ -76,15 +80,17 @@ fun ListPmView(
     val checkNotNull = remember {
         mutableStateOf(false)
     }
-    Log.d("TES USER ID", vm.prefs.getTipeSatker()!!)
+    val loadingData = remember {
+        mutableStateOf(false)
+    }
 
     if (!vm.prefs.getTipeSatker().isNullOrEmpty()) {
         checkNotNull.value = true
-        LaunchedEffect(key3 = search.value, key2 = checkNotNull.value, key1 = Unit, block = {
+        LaunchedEffect(key3 = search.value, key2 = vm.prefs.getTipeSatker(), key1 = Unit, block = {
             when (vm.prefs.getTipeSatker()) {
-                "3" -> vm.getPmData(search.value)
-                "1" -> vm.getPm(search.value)
-                else -> vm.getPmData(search.value)
+                "3" -> vm.getPmData(search.value,loadingData)
+                "1" -> vm.getPm(search.value,loadingData)
+                else -> vm.getPmDirektorat(search.value,loadingData)
             }
         })
     }
@@ -94,6 +100,10 @@ fun ListPmView(
     val context = LocalContext.current
 
     val loading = remember {
+        mutableStateOf(false)
+    }
+
+    val refresh = remember {
         mutableStateOf(false)
     }
 
@@ -124,77 +134,106 @@ fun ListPmView(
         }
     }
 
-    Scaffold(
-        floatingActionButton = {
-            if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
-                FloatingActionButton(
-                    onClick = {
-                        navController.navigate(AppRoute.Form.route)
-                    },
-                    containerColor = Color(0xFF00A7C0),
-                    shape = CircleShape,
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.add_icon),
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier
-                            .size(14.dp)
-                    )
-                }
-            }
-
+    SwipeRefresh(state = rememberSwipeRefreshState(isRefreshing = refresh.value), onRefresh = {
+        navController.navigate(BotNavRoute.PenerimaManfaat.route) {
+            popUpTo(0)
         }
-    ) {
-        Surface(
-            Modifier
-                .padding(it)
-                .fillMaxSize(),
-            color = Color(0xFF00A7C0)
-        ) {
-            Column {
-                HeaderList(search, "Penerima Manfaat", loginVm, uiState)
-                Spacer(modifier = Modifier.height(20.dp))
-                ListBody {
-                    if (uiState.isNotEmpty()) {
-                        LazyColumn(
+    }) {
+        Scaffold(
+            floatingActionButton = {
+                if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
+                    FloatingActionButton(
+                        onClick = {
+                            navController.navigate(AppRoute.Form.route)
+                        },
+                        containerColor = Color(0xFF00A7C0),
+                        shape = CircleShape,
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.add_icon),
+                            contentDescription = null,
+                            tint = Color.White,
                             modifier = Modifier
-                                .padding(16.dp),
-                            content = {
-                                items(uiState) { item ->
-                                    val delete = SwipeAction(
-                                        icon = painterResource(id = R.drawable.icon_delete),
-                                        background = Color(0xFFEF3131),
-                                        onSwipe = {
-                                            currentIndex.intValue = item.id!!.toInt()
-                                            confirmDelete.value = true
-                                        }
-                                    )
-                                    if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
-                                        SwipeableActionsBox(
-                                            endActions = listOf(delete),
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(6.dp))
-                                        ) {
+                                .size(14.dp)
+                        )
+                    }
+                }
+
+            }
+        ) {
+            Surface(
+                Modifier
+                    .padding(it)
+                    .fillMaxSize(),
+                color = Color(0xFF00A7C0)
+            ) {
+                Column {
+                    HeaderList(search, "Penerima Manfaat", loginVm, uiState)
+                    Spacer(modifier = Modifier.height(20.dp))
+                    ListBody {
+                        if (uiState.isNotEmpty()) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                content = {
+                                    items(uiState) { item ->
+                                        val delete = SwipeAction(
+                                            icon = painterResource(id = R.drawable.icon_delete),
+                                            background = Color(0xFFEF3131),
+                                            onSwipe = {
+                                                currentIndex.intValue = item.id!!.toInt()
+                                                confirmDelete.value = true
+                                            }
+                                        )
+                                        if (!vm.prefs.getTipeSatker().isNullOrEmpty() && vm.prefs.getTipeSatker() == "3") {
+                                            SwipeableActionsBox(
+                                                endActions = listOf(delete),
+                                                modifier = Modifier
+                                                    .clip(RoundedCornerShape(6.dp))
+                                            ) {
+                                                ListPmItem(navController, item) {
+
+                                                }
+                                            }
+                                        } else {
                                             ListPmItem(navController, item) {
 
                                             }
                                         }
-                                    } else {
-                                        ListPmItem(navController, item) {
 
-                                        }
+                                        Spacer(modifier = Modifier.height(14.dp))
+
                                     }
+                                })
+                        } else if (uiState.isEmpty() && loadingData.value) {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .padding(16.dp),
+                                content = {
+                                    items(20) {
+                                        ShimerItem()
+                                        Spacer(modifier = Modifier.height(14.dp))
 
-                                    Spacer(modifier = Modifier.height(14.dp))
+                                    }
+                                })
+                        } else {
+                            Box(modifier = Modifier
+                                .fillMaxSize()
+                                .wrapContentSize(Alignment.Center)) {
+                                Text(text = "Data Kosong",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color(0xFF8D8D8D),
+                                    fontSize = 16.sp
+                                )
+                            }
 
-                                }
-                            })
+                        }
                     }
                 }
             }
         }
     }
+
 }
 
 @Composable
@@ -211,6 +250,7 @@ private fun ListPmItem(
             .clip(RoundedCornerShape(6.dp))
             .clickable {
                 try {
+
                     navController.navigate(
                         AppRoute.DetailPm.route
                                 + "/${item.nama_ragam?.replace('/', '-')}"
@@ -226,7 +266,12 @@ private fun ListPmItem(
                                 + "/${item.nama_kluster}"
                                 + "/${item.id_kluster}"
                                 + "/${item.id_provinsi}"
-                                + "/${if (!item.ket_ppks.isNullOrEmpty()) item.ket_ppks else "0"}"
+                                + "/${
+                            if (!item.ket_ppks.isNullOrEmpty()) item.ket_ppks.replace(
+                                "/",
+                                " "
+                            ) else "0"
+                        }"
                                 + "/${if (!item.place_of_birth.isNullOrEmpty()) item.place_of_birth else "0"}"
                                 + "/${if (!item.date_of_birth.isNullOrEmpty()) item.date_of_birth else "0"}"
                                 + "/${if (!item.phone_number.isNullOrEmpty()) item.phone_number else "0"}"
@@ -235,7 +280,12 @@ private fun ListPmItem(
                                 + "/${if (!item.id_kecamatan.isNullOrEmpty()) item.id_kecamatan else "0"}"
                                 + "/${if (!item.nama_kecamatan.isNullOrEmpty()) item.nama_kecamatan else "0"}"
                                 + "/${if (!item.id_kabupaten.isNullOrEmpty()) item.id_kabupaten else "0"}"
-                                + "/${if (!item.nama_jalan.isNullOrEmpty()) item.nama_jalan else "0"}"
+                                + "/${
+                            if (!item.nama_jalan.isNullOrEmpty()) item.nama_jalan.replace(
+                                "/",
+                                " "
+                            ) else "0"
+                        }"
                                 + "?foto_diri=${if (!item.foto_diri.isNullOrEmpty()) item.foto_diri else "0"}"
                     )
                 } catch (e: Exception) {
@@ -287,7 +337,7 @@ private fun ListPmItem(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = item.nama_provinsi!! + " / " + item.nama_provinsi,
+                    text = item.nama_provinsi!! + " / " + item.nama_kabupaten,
                     style = MaterialTheme.typography.bodyMedium,
                     fontSize = 10.sp,
                     color = Color(0xFFC3C3C3)

@@ -26,8 +26,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-        @OptIn(ExperimentalMaterial3Api::class)
-        override fun onCreate(savedInstanceState: Bundle?) {
+    @OptIn(ExperimentalMaterial3Api::class)
+    override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             SipentasTheme(darkTheme = false) {
@@ -42,12 +42,28 @@ class MainActivity : ComponentActivity() {
                     }
                     val context = LocalContext.current
                     val location = LocationProviders(context)
+                    val lat = remember {
+                        mutableStateOf("")
+                    }
+                    val long = remember {
+                        mutableStateOf("")
+                    }
 
                     LaunchedEffect(Unit) {
                         if (!isLocationEnabled(context)) {
                             showGPSDisabledAlert(context)
                         }
+
                     }
+                    LaunchedEffect(key1 = isLocationEnabled(context), block = {
+                        location.getLastKnownLocation(success = {
+                            lat.value = it?.latitude.toString()
+                            long.value = it?.longitude.toString()
+                        }) {
+
+                        }
+                    } )
+                    location.LocationPermission(lat = lat, long = long)
 
                     Scaffold (
                         bottomBar = {
@@ -55,7 +71,7 @@ class MainActivity : ComponentActivity() {
                                 BottomNav(navController = navController)
                             }
                         }
-                            ) {
+                    ) {
                         Surface(
                             Modifier
                                 .padding(it)

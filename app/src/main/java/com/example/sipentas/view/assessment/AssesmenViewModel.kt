@@ -184,47 +184,59 @@ class AssesmenViewModel @Inject constructor(private val repo: AssesmentRepositor
             }
         }
 
-    fun getAssesmen() =
+    fun getAssesmen(loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value =true
             try {
                 repo.getAssesment().let { item ->
                     _uiState.value = item
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("EROR GET DATA", e.toString())
+                loading.value = false
             }
         }
 
-    fun getAssesmentAll() =
+    fun getAssesmentAll(loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.getAllAssesment().let { item ->
                     _uiState.value = item
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("EROR GET DATA", e.toString())
+                loading.value = false
             }
         }
 
-    fun searchAssesment(search:String) =
+    fun searchAssesment(search:String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.searchAssesment(search).let { item ->
                     _uiState.value = item
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("EROR GET DATA", e.toString())
+                loading.value = false
             }
         }
 
-    fun searchAllAssesment(search:String) =
+    fun searchAllAssesment(search:String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 repo.searchAssesmentAll(search).let { item ->
                     _uiState.value = item
+                    loading.value = false
                 }
             } catch (e: Exception) {
                 Log.e("EROR GET DATA", e.toString())
+                loading.value = false
             }
         }
 

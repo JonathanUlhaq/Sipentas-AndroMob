@@ -45,16 +45,19 @@ class ListPmViewModel @Inject constructor(val repo: PmRepository,val prefs: Shar
             }
         }
 
-    fun getPmData(search: String) =
+    fun getPmData(search: String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
             try {
                 if (search.isEmpty()) {
                     repo.getAllPm().let { item ->
                         _uiState.value = item
+                        loading.value = false
                     }
                 } else {
                     repo.searchPm(search).let { item ->
                         _uiState.value = item
+                        loading.value = false
                     }
                 }
             } catch (e: Exception) {
@@ -62,16 +65,39 @@ class ListPmViewModel @Inject constructor(val repo: PmRepository,val prefs: Shar
             }
         }
 
-    fun getPm(search: String) =
+    fun getPmDirektorat(search: String,loading: MutableState<Boolean>) =
         viewModelScope.launch {
+            loading.value = true
+            try {
+                if (search.isEmpty()) {
+                    repo.getPmByDirektorat().let { item ->
+                        _uiState.value = item
+                        loading.value = false
+                    }
+                } else {
+                    repo.getSearchAllPmSearch(search).let { item ->
+                        _uiState.value = item
+                        loading.value = false
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("EROR GET DATA", e.toString())
+            }
+        }
+
+    fun getPm(search: String,loading: MutableState<Boolean>) =
+        viewModelScope.launch {
+            loading.value = true
             try {
                 if (search.isEmpty()) {
                     repo.getPm().let { item ->
                         _uiState.value = item
+                        loading.value = false
                     }
                 } else {
                     repo.getSearchAllPm(search).let { item ->
                         _uiState.value = item
+                        loading.value = false
                     }
                 }
             } catch (e: Exception) {
